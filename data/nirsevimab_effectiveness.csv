@@ -1,0 +1,4 @@
+age_group;nirsevimab_hosp_reduction_eff;nirsevimab_hosp_reduction_eff_ci95_lower;nirsevimab_hosp_reduction_eff_ci95_upper;nirsevimab_malrti_reduction_eff;nirsevimab_malrti_reduction_eff_ci95_lower;nirsevimab_malrti_reduction_eff_ci95_upper
+0-3;0.7641;0.7257;0.7972;0.701;0.523;0.812
+3-6;0.7641;0.7257;0.7972;0.701;0.523;0.812
+6-12;0;0;0;0;0;0

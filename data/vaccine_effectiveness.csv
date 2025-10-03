@@ -1,0 +1,4 @@
+age_group;vaccine_hosp_reduction_eff;vaccine_malrti_reduction_eff
+0-3;0.697;0.576
+3-6;0.4276;0.4105
+6-12;0;0

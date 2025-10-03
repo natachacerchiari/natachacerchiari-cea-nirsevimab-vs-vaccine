@@ -1,0 +1,4 @@
+age_group;caregiver_visit_days;transport_cost_per_trip;consultations
+0-3;5.59;0.9299;1.5
+3-6;5.05;0.9299;1.5
+6-12;4.49;0.9299;1.5
