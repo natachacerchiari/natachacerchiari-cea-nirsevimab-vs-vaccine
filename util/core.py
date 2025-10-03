@@ -1,10 +1,15 @@
-"""Core reusable functions for the VSR project."""
+"""Core reusable functions for the RSV project."""
 
-__all__ = ["calculate_discounted_yll", "calculate_dose_cost",
-           "calculate_inpatient_transport_cost", "calculate_outpatient_transport_cost",
-           "calculate_salary_loss", "run_scenario"]
+__all__ = [
+    "calculate_discounted_yll",
+    "calculate_dose_cost",
+    "calculate_inpatient_transport_cost",
+    "calculate_outpatient_transport_cost",
+    "calculate_salary_loss",
+    "run_scenario",
+]
 
-from typing import Sequence, Dict
+from typing import Dict, Sequence
 
 
 def _compute_cases_with_eff(population: float, proportion: float, reduction_eff: float) -> float:
@@ -39,10 +44,8 @@ def _calculate_subgroup_cost(
     as the sum of inpatient and outpatient costs.
     """
 
-    hosp_cases = _compute_cases_with_eff(
-        population, hosp_proportion, hosp_reduction_eff)
-    outpatient_cases = _compute_cases_with_eff(
-        population, outpatient_proportion, malrti_reduction_eff)
+    hosp_cases = _compute_cases_with_eff(population, hosp_proportion, hosp_reduction_eff)
+    outpatient_cases = _compute_cases_with_eff(population, outpatient_proportion, malrti_reduction_eff)
 
     inpatient_base = (
         inpatient_cost
@@ -51,11 +54,7 @@ def _calculate_subgroup_cost(
         + inpatient_salary_loss
         + outpatient_ec_cost  # At least one emergency care visit
     )
-    outpatient_base = (
-        outpatient_pc_cost
-        + outpatient_transport_cost
-        + outpatient_salary_loss
-    )
+    outpatient_base = outpatient_pc_cost + outpatient_transport_cost + outpatient_salary_loss
 
     total_cost = hosp_cases * inpatient_base + outpatient_cases * outpatient_base
     return total_cost
@@ -87,10 +86,8 @@ def _calculate_subgroup_dalys(
     if days_in_year <= 0:
         raise ValueError("days_in_year must be > 0.")
 
-    hosp_cases = _compute_cases_with_eff(
-        population, hosp_proportion, hosp_reduction_eff)
-    outpatient_cases = _compute_cases_with_eff(
-        population, outpatient_proportion, malrti_reduction_eff)
+    hosp_cases = _compute_cases_with_eff(population, hosp_proportion, hosp_reduction_eff)
+    outpatient_cases = _compute_cases_with_eff(population, outpatient_proportion, malrti_reduction_eff)
     hosp_death_cases = _compute_death_cases(hosp_cases, lethality)
     hosp_cure_cases = _compute_cure_cases(hosp_cases, hosp_death_cases)
 
@@ -128,12 +125,12 @@ def calculate_discounted_yll(discount_rate: float, years: int, final_year_factor
 
     # Sum of full-year discounted factors
     if years > 0:
-        sum_discounts = sum(base ** t for t in range(int(years)))
+        sum_discounts = sum(base**t for t in range(int(years)))
     else:
         sum_discounts = 0.0
 
     # Discount factor for the (possibly partial) terminal year
-    final_discount = base ** years
+    final_discount = base**years
     return sum_discounts + final_discount * final_year_factor
 
 
@@ -145,13 +142,14 @@ def calculate_dose_cost(unit_cost: float, wastage_pct: float, administration_cos
     return dose_cost
 
 
-def calculate_inpatient_transport_cost(caregiver_visit_days: float, consultations: float, transport_cost_per_trip: float) -> float:
+def calculate_inpatient_transport_cost(
+    caregiver_visit_days: float, consultations: float, transport_cost_per_trip: float
+) -> float:
     """
     Calculate inpatient transport cost per patient considering round trips.
     """
     visits = caregiver_visit_days + consultations
-    inpatient_transport_cost = visits * 2 * \
-        transport_cost_per_trip  # times 2 for round trip
+    inpatient_transport_cost = visits * 2 * transport_cost_per_trip  # times 2 for round trip
     return inpatient_transport_cost
 
 
@@ -159,17 +157,17 @@ def calculate_outpatient_transport_cost(consultations: float, transport_cost_per
     """
     Calculate outpatient transport cost per patient considering round trips.
     """
-    outpatient_transport_cost = consultations * 2 * \
-        transport_cost_per_trip  # times 2 for round trip
+    outpatient_transport_cost = consultations * 2 * transport_cost_per_trip  # times 2 for round trip
     return outpatient_transport_cost
 
 
-def calculate_salary_loss(illness_duration_days: float, affected_caregivers_proportion: float, caregiver_daily_salary: float) -> float:
+def calculate_salary_loss(
+    illness_duration_days: float, affected_caregivers_proportion: float, caregiver_daily_salary: float
+) -> float:
     """
     Calculate average caregiver salary loss per patient.
     """
-    salary_loss = illness_duration_days * \
-        affected_caregivers_proportion * caregiver_daily_salary
+    salary_loss = illness_duration_days * affected_caregivers_proportion * caregiver_daily_salary
     return salary_loss
 
 
@@ -208,16 +206,24 @@ def run_scenario(
         Dict[str, float]: {"cost": total_cost, "dalys": total_dalys}
     """
     seqs = [
-        population_proportions, hosp_proportions, outpatient_proportions, lethality_proportions,
-        inpatient_costs, inpatient_pcr_costs, outpatient_ec_costs, outpatient_pc_costs,
-        inpatient_transport_costs, inpatient_caregiver_salary_losses,
-        outpatient_transport_costs, outpatient_caregiver_salary_losses,
-        hosp_reduction_effs, malrti_reduction_effs,
+        population_proportions,
+        hosp_proportions,
+        outpatient_proportions,
+        lethality_proportions,
+        inpatient_costs,
+        inpatient_pcr_costs,
+        outpatient_ec_costs,
+        outpatient_pc_costs,
+        inpatient_transport_costs,
+        inpatient_caregiver_salary_losses,
+        outpatient_transport_costs,
+        outpatient_caregiver_salary_losses,
+        hosp_reduction_effs,
+        malrti_reduction_effs,
     ]
     lengths = [len(s) for s in seqs]
     if len(set(lengths)) != 1:
-        raise ValueError(
-            f"All subgroup sequences must have identical length. Got lengths: {lengths}")
+        raise ValueError(f"All subgroup sequences must have identical length. Got lengths: {lengths}")
     n = lengths[0]
     if n == 0:
         return {"cost": cohort * coverage * intervention_dose_cost, "dalys": 0.0}
@@ -225,8 +231,7 @@ def run_scenario(
     total_prop = sum(population_proportions)
     if not (0.999 <= total_prop <= 1.001):
         # Allow a small tolerance but enforce near-1 total
-        raise ValueError(
-            f"Subgroup proportions must sum to 1 (±0.001). Got {total_prop}.")
+        raise ValueError(f"Subgroup proportions must sum to 1 (±0.001). Got {total_prop}.")
 
     total_disease_cost = 0.0
     total_dalys = 0.0

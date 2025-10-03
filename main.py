@@ -1,7 +1,7 @@
 from util.core import run_scenario
 from util.constants import DAYS_IN_YEAR
 from util.data_loader import load_age_groups, load_scalar_data, load_agegroup_data
-from util.data_enricher import enrich_scalar_data , enrich_agegroup_data
+from util.data_enricher import enrich_scalar_data, enrich_agegroup_data
 
 
 def main():
@@ -69,7 +69,9 @@ def main():
     print("Vaccine scenario:", vaccine_result)
     print("Nirsevimab scenario:", nirsevimab_result)
 
-    icer = (nirsevimab_result["cost"] - vaccine_result["cost"]) / (vaccine_result["dalys"] - nirsevimab_result["dalys"])
+    icer = (nirsevimab_result["cost"] - vaccine_result["cost"]) / (
+        vaccine_result["dalys"] - nirsevimab_result["dalys"]
+    )
 
     print("ICER: ", icer)
 
@@ -132,7 +134,9 @@ def main():
     print("Vaccine scenario:", vaccine_result)
     print("Nirsevimab scenario:", nirsevimab_result)
 
-    icer = (nirsevimab_result["cost"] - vaccine_result["cost"]) / (vaccine_result["dalys"] - nirsevimab_result["dalys"])
+    icer = (nirsevimab_result["cost"] - vaccine_result["cost"]) / (
+        vaccine_result["dalys"] - nirsevimab_result["dalys"]
+    )
 
     print("ICER: ", icer)
 

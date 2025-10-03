@@ -1,8 +1,10 @@
-import pandas as pd
-from pathlib import Path
+"""Utility functions to load data from CSV files into pandas DataFrames."""
 
 __all__ = ["load_age_groups", "load_scalar_data", "load_ageband_data"]
 
+from pathlib import Path
+
+import pandas as pd
 
 _DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
@@ -66,8 +68,7 @@ def load_scalar_data() -> pd.DataFrame:
             raise ValueError(f"{file_path.name} must contain exactly one row.")
         for column in df.columns:
             if column in scalar_data:
-                raise ValueError(
-                    f"Duplicate column name '{column}' found in {file_path.name}.")
+                raise ValueError(f"Duplicate column name '{column}' found in {file_path.name}.")
             scalar_data[column] = df.iloc[0][column]
     return pd.DataFrame([scalar_data])
 
@@ -82,13 +83,11 @@ def load_agegroup_data() -> pd.DataFrame:
             raise FileNotFoundError(f"Missing {file_path.name}")
         df = pd.read_csv(file_path, sep=";")
         if "age_group" not in df.columns:
-            raise ValueError(
-                f"{file_path.name} must contain 'age_group' column.")
+            raise ValueError(f"{file_path.name} must contain 'age_group' column.")
         for column in df.columns:
             if column == "age_group":
                 continue
             if column in grouped_data:
-                raise ValueError(
-                    f"Duplicate column name '{column}' found in {file_path.name}.")
+                raise ValueError(f"Duplicate column name '{column}' found in {file_path.name}.")
             grouped_data[column] = df.set_index("age_group")[column].to_dict()
     return pd.DataFrame(grouped_data)

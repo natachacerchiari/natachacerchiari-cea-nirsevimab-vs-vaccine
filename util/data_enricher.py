@@ -1,4 +1,9 @@
+"""Functions to enrich input data with derived metrics."""
+
+__all__ = ["enrich_scalar_data", "enrich_agegroup_data"]
+
 import pandas as pd
+
 from util.core import (
     calculate_discounted_yll,
     calculate_dose_cost,
@@ -6,8 +11,6 @@ from util.core import (
     calculate_outpatient_transport_cost,
     calculate_salary_loss,
 )
-
-__all__ = ["enrich_scalar_data", "enrich_agegroup_data"]
 
 
 def enrich_scalar_data(scalar_data: pd.DataFrame) -> pd.DataFrame:
@@ -17,47 +20,39 @@ def enrich_scalar_data(scalar_data: pd.DataFrame) -> pd.DataFrame:
       - nirsevimab_dose_cost
       - vaccine_dose_cost
     """
-    required_yll_cols = {
-        'discount_rate',
-        'life_expectancy_floor',
-        'life_expectancy_last_year_remainder'
-    }
+    required_yll_cols = {"discount_rate", "life_expectancy_floor", "life_expectancy_last_year_remainder"}
     if not required_yll_cols.issubset(scalar_data.columns):
         raise ValueError(f"Input DataFrame must contain {required_yll_cols} columns.")
-    scalar_data['discounted_yll'] = scalar_data.apply(
+    scalar_data["discounted_yll"] = scalar_data.apply(
         lambda row: calculate_discounted_yll(
-            discount_rate=row['discount_rate'],
-            years=row['life_expectancy_floor'],
-            final_year_factor=row['life_expectancy_last_year_remainder']
+            discount_rate=row["discount_rate"],
+            years=row["life_expectancy_floor"],
+            final_year_factor=row["life_expectancy_last_year_remainder"],
         ),
-        axis=1
+        axis=1,
     )
 
     required_cost_cols = {
-        'nirsevimab_unit_cost',
-        'nirsevimab_wastage_rate',
-        'nirsevimab_administration_cost',
-        'vaccine_unit_cost',
-        'vaccine_wastage_rate',
-        'vaccine_administration_cost'
+        "nirsevimab_unit_cost",
+        "nirsevimab_wastage_rate",
+        "nirsevimab_administration_cost",
+        "vaccine_unit_cost",
+        "vaccine_wastage_rate",
+        "vaccine_administration_cost",
     }
     if not (required_cost_cols).issubset(scalar_data.columns):
         raise ValueError(f"Input DataFrame must contain {required_cost_cols} columns.")
-    scalar_data['nirsevimab_dose_cost'] = scalar_data.apply(
+    scalar_data["nirsevimab_dose_cost"] = scalar_data.apply(
         lambda r: calculate_dose_cost(
-            r['nirsevimab_unit_cost'],
-            r['nirsevimab_wastage_rate'],
-            r['nirsevimab_administration_cost']
+            r["nirsevimab_unit_cost"], r["nirsevimab_wastage_rate"], r["nirsevimab_administration_cost"]
         ),
-        axis=1
+        axis=1,
     )
-    scalar_data['vaccine_dose_cost'] = scalar_data.apply(
+    scalar_data["vaccine_dose_cost"] = scalar_data.apply(
         lambda r: calculate_dose_cost(
-            r['vaccine_unit_cost'],
-            r['vaccine_wastage_rate'],
-            r['vaccine_administration_cost']
+            r["vaccine_unit_cost"], r["vaccine_wastage_rate"], r["vaccine_administration_cost"]
         ),
-        axis=1
+        axis=1,
     )
     return scalar_data
 
@@ -74,19 +69,16 @@ def enrich_agegroup_data(agegroup_data: pd.DataFrame, scalar_data: pd.DataFrame)
         raise ValueError("scalar_data must contain exactly one row.")
     scalar_row = scalar_data.iloc[0]
 
-    required_scalar_cols = {
-        'moderate_illness_duration_days',
-        'severe_illness_duration_days'
-    }
+    required_scalar_cols = {"moderate_illness_duration_days", "severe_illness_duration_days"}
     if not required_scalar_cols.issubset(scalar_data.columns):
         raise ValueError(f"Input DataFrame must contain {required_scalar_cols} columns.")
 
     required_agegroup_cols = {
-        'caregiver_visit_days',
-        'consultations',
-        'transport_cost_per_trip',
-        'affected_caregivers_proportion',
-        'caregiver_daily_salary'
+        "caregiver_visit_days",
+        "consultations",
+        "transport_cost_per_trip",
+        "affected_caregivers_proportion",
+        "caregiver_daily_salary",
     }
     if not required_agegroup_cols.issubset(agegroup_data.columns):
         raise ValueError(f"Input DataFrame must contain {required_agegroup_cols} columns.")
