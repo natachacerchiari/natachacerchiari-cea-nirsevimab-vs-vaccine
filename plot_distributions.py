@@ -15,6 +15,7 @@ from stat_tools.fit_distributions import (
     fit_lognormal_briggs,
     fit_normal,
 )
+from stat_tools.sampling import sample_truncated_normal
 from util import (
     enrich_agegroup_data,
     enrich_scalar_data,
@@ -28,8 +29,8 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 N = 10_000
 
-random.seed(42)
-RNG = np.random.default_rng(42)
+DEFAULT_RNG = random.Random(42)
+NP_RNG = np.random.default_rng(42)
 
 
 def _save_hist(data: list[float], title: str, filename: str) -> None:
@@ -68,20 +69,6 @@ def _save_comparative_hists(samples: list[tuple[list[float], str, str]]) -> None
         plt.close()
 
 
-def _sample_truncated_normal(
-    n: int, mean: float, sd: float, lo: float = 0.0, hi: float = 1.0
-) -> list[float]:
-    """Sample from a truncated normal distribution."""
-    out = []
-    for _ in range(n):
-        while True:
-            x = random.gauss(mean, sd)
-            if lo <= x <= hi:
-                out.append(x)
-                break
-    return out
-
-
 # Load and enrich data
 age_groups_df = load_age_groups()
 scalar_data_df = enrich_scalar_data(load_scalar_data())
@@ -93,14 +80,14 @@ moderate_mean = float(scalar_row["moderate_case_dw"])
 moderate_lo = float(scalar_row["moderate_case_dw_ci95_lower"])
 moderate_hi = float(scalar_row["moderate_case_dw_ci95_upper"])
 a_mod, b_mod = fit_beta(moderate_mean, moderate_lo, moderate_hi)
-moderate_samples = [random.betavariate(a_mod, b_mod) for _ in range(N)]
+moderate_samples = [DEFAULT_RNG.betavariate(a_mod, b_mod) for _ in range(N)]
 _save_hist(moderate_samples, "moderate_case_dw (Beta)", "moderate_case_dw_beta.png")
 
 severe_mean = float(scalar_row["severe_case_dw"])
 severe_lo = float(scalar_row["severe_case_dw_ci95_lower"])
 severe_hi = float(scalar_row["severe_case_dw_ci95_upper"])
 a_sev, b_sev = fit_beta(severe_mean, severe_lo, severe_hi)
-severe_samples = [random.betavariate(a_sev, b_sev) for _ in range(N)]
+severe_samples = [DEFAULT_RNG.betavariate(a_sev, b_sev) for _ in range(N)]
 _save_hist(severe_samples, "severe_case_dw (Beta)", "severe_case_dw_beta.png")
 
 # Epidemiologic proportions (Beta & Lognormal) per age group
@@ -111,7 +98,7 @@ for sg in agegroup_data_df.index:
     hosp_samples_collection = []
     try:
         a_hosp, b_hosp = fit_beta(hosp_mean, hosp_lo, hosp_hi)
-        hosp_beta_samples = [random.betavariate(a_hosp, b_hosp) for _ in range(N)]
+        hosp_beta_samples = [DEFAULT_RNG.betavariate(a_hosp, b_hosp) for _ in range(N)]
         hosp_samples_collection.append(
             (
                 hosp_beta_samples,
@@ -122,7 +109,7 @@ for sg in agegroup_data_df.index:
     except ValueError:
         pass
     mu_hosp, sigma_hosp = fit_lognormal(hosp_mean, hosp_lo, hosp_hi)
-    hosp_logn_samples = [math.exp(random.gauss(mu_hosp, sigma_hosp)) for _ in range(N)]
+    hosp_logn_samples = [math.exp(DEFAULT_RNG.gauss(mu_hosp, sigma_hosp)) for _ in range(N)]
     hosp_samples_collection.append(
         (
             hosp_logn_samples,
@@ -138,7 +125,7 @@ for sg in agegroup_data_df.index:
     out_samples_collection = []
     try:
         a_out, b_out = fit_beta(out_mean, out_lo, out_hi)
-        out_beta_samples = [random.betavariate(a_out, b_out) for _ in range(N)]
+        out_beta_samples = [DEFAULT_RNG.betavariate(a_out, b_out) for _ in range(N)]
         out_samples_collection.append(
             (
                 out_beta_samples,
@@ -149,7 +136,7 @@ for sg in agegroup_data_df.index:
     except ValueError:
         pass
     mu_out, sigma_out = fit_lognormal(out_mean, out_lo, out_hi)
-    out_logn_samples = [math.exp(random.gauss(mu_out, sigma_out)) for _ in range(N)]
+    out_logn_samples = [math.exp(DEFAULT_RNG.gauss(mu_out, sigma_out)) for _ in range(N)]
     out_samples_collection.append(
         (
             out_logn_samples,
@@ -167,9 +154,9 @@ for sg in agegroup_data_df.index:
         h_lo = float(agegroup_data_df.loc[sg, "nirsevimab_hosp_reduction_eff_ci95_lower"])
         h_hi = float(agegroup_data_df.loc[sg, "nirsevimab_hosp_reduction_eff_ci95_upper"])
         n_mean, n_sd = fit_normal(h_mean, h_lo, h_hi)
-        hosp_norm_samples = _sample_truncated_normal(N, n_mean, n_sd)
+        hosp_norm_samples = sample_truncated_normal(N, n_mean, n_sd, rng=DEFAULT_RNG)
         a_h, b_h = fit_beta(h_mean, h_lo, h_hi)
-        hosp_beta_samples = [random.betavariate(a_h, b_h) for _ in range(N)]
+        hosp_beta_samples = [DEFAULT_RNG.betavariate(a_h, b_h) for _ in range(N)]
         _save_comparative_hists(
             [
                 (
@@ -191,7 +178,7 @@ for sg in agegroup_data_df.index:
         m_lo = float(agegroup_data_df.loc[sg, "nirsevimab_malrti_reduction_eff_ci95_lower"])
         m_hi = float(agegroup_data_df.loc[sg, "nirsevimab_malrti_reduction_eff_ci95_upper"])
         a_m, b_m = fit_beta(m_mean, m_lo, m_hi)
-        malrti_beta_samples = [random.betavariate(a_m, b_m) for _ in range(N)]
+        malrti_beta_samples = [DEFAULT_RNG.betavariate(a_m, b_m) for _ in range(N)]
         _save_hist(
             malrti_beta_samples,
             f"malrti_reduction_eff {sg} (Beta)",
@@ -203,7 +190,7 @@ mini = float(scalar_row["nirsevimab_min_expected_coverage"])
 mode = float(scalar_row["nirsevimab_coverage"])
 maxi = float(scalar_row["nirsevimab_max_expected_coverage"])
 nirsevimab_coverage_samples = [
-    pert.rvs(mini=mini, mode=mode, maxi=maxi, random_state=RNG) for _ in range(N)
+    pert.rvs(mini=mini, mode=mode, maxi=maxi, random_state=NP_RNG) for _ in range(N)
 ]
 _save_hist(nirsevimab_coverage_samples, "nirsevimab_coverage (PERT)", "nirsevimab_coverage_pert.png")
 
@@ -212,7 +199,7 @@ variation = 0.25
 for sg in agegroup_data_df.index:
     mean_inp = float(agegroup_data_df.loc[sg, "inpatient_cost"])
     mu_inp, sigma_inp = fit_lognormal_briggs(mean_inp, variation)
-    inpatient_cost_samples = [math.exp(random.gauss(mu_inp, sigma_inp)) for _ in range(N)]
+    inpatient_cost_samples = [math.exp(DEFAULT_RNG.gauss(mu_inp, sigma_inp)) for _ in range(N)]
     _save_hist(
         inpatient_cost_samples,
         f"inpatient_cost {sg} (Lognormal Briggs)",
@@ -221,18 +208,18 @@ for sg in agegroup_data_df.index:
 
 opc_mean = float(agegroup_data_df.iloc[0]["outpatient_pc_cost"])
 mu_opc, sigma_opc = fit_lognormal_briggs(opc_mean, variation)
-opc_samples = [math.exp(random.gauss(mu_opc, sigma_opc)) for _ in range(N)]
+opc_samples = [math.exp(DEFAULT_RNG.gauss(mu_opc, sigma_opc)) for _ in range(N)]
 _save_hist(opc_samples, "outpatient_pc_cost (Lognormal Briggs)", "outpatient_pc_cost_lognormal.png")
 
 oec_mean = float(agegroup_data_df.iloc[0]["outpatient_ec_cost"])
 mu_oec, sigma_oec = fit_lognormal_briggs(oec_mean, variation)
-oec_samples = [math.exp(random.gauss(mu_oec, sigma_oec)) for _ in range(N)]
+oec_samples = [math.exp(DEFAULT_RNG.gauss(mu_oec, sigma_oec)) for _ in range(N)]
 _save_hist(oec_samples, "outpatient_ec_cost (Lognormal Briggs)", "outpatient_ec_cost_lognormal.png")
 
 # Indirect costs (caregiver daily salary)
 salary_mean = float(agegroup_data_df.iloc[0]["caregiver_daily_salary"])
 mu_sal, sigma_sal = fit_lognormal_briggs(salary_mean, variation)
-salary_samples = [math.exp(random.gauss(mu_sal, sigma_sal)) for _ in range(N)]
+salary_samples = [math.exp(DEFAULT_RNG.gauss(mu_sal, sigma_sal)) for _ in range(N)]
 _save_hist(
     salary_samples, "caregiver_daily_salary (Lognormal Briggs)", "caregiver_daily_salary_lognormal.png"
 )
