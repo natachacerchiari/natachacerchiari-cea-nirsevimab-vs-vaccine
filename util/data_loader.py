@@ -1,6 +1,6 @@
 """Utility functions to load data from CSV files into pandas DataFrames."""
 
-__all__ = ["load_age_groups", "load_scalar_data", "load_ageband_data"]
+__all__ = ["load_age_groups", "load_scalar_data", "load_agegroup_data"]
 
 from pathlib import Path
 
