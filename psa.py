@@ -86,6 +86,7 @@ def main():
     nirsevimab_malrti_reduction_effs = agegroup_data["nirsevimab_malrti_reduction_eff"].to_list()
     vaccine_malrti_reduction_effs = agegroup_data["vaccine_malrti_reduction_eff"].to_list()
     affected_caregivers_proportions = agegroup_data["affected_caregivers_proportion"].to_list()
+    caregiver_daily_salaries = agegroup_data["caregiver_daily_salary"].to_list()
 
     # Fit Beta parameters for DWs
     moderate_case_dw_alpha, moderate_case_dw_beta = fit_beta(
@@ -133,6 +134,11 @@ def main():
     outpatient_pc_costs_params = [fit_lognormal_briggs(c, 0.25) for c in outpatient_pc_costs]
     outpatient_ec_costs_params = [fit_lognormal_briggs(c, 0.25) for c in outpatient_ec_costs]
 
+    # Fit lognormal (Briggs) parameters for salary loss (25% variation)
+    caregiver_daily_salary_params = [
+        fit_lognormal_briggs(c, 0.25) for c in caregiver_daily_salaries
+    ]
+
     societal_results = []
     public_results = []
 
@@ -163,15 +169,11 @@ def main():
             for (mu, sigma) in outpatient_ec_costs_params
         ]
 
-        # Caregiver salary draws
-        caregiver_daily_salary_draws = sample_truncated_normal(
-            n_sub,
-            mean=5.8498,
-            sd=0.8966,
-            lo=0.0,
-            hi=math.inf,
-            rng=DEFAULT_RNG,
-        )
+        # Caregiver salary loss calculations
+        caregiver_daily_salary_draws = [
+            sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
+            for (mu, sigma) in caregiver_daily_salary_params
+        ]
         rand_inpatient_caregiver_salary_losses = [
             calculate_salary_loss(
                 severe_illness_duration_days,
