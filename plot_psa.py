@@ -8,13 +8,13 @@ import matplotlib.ticker as ticker
 import pandas as pd
 import seaborn as sns
 
+from util.constants import WTP
+
 sns.set_theme(style="whitegrid")
 
 # Read CSV files
 df1 = pd.read_csv("results/psa/psa_public.csv")
 df2 = pd.read_csv("results/psa/psa_societal.csv")
-
-WTP = 8016.03  # Willingness To Pay [USD per DALY averted]
 
 # Create figure
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
