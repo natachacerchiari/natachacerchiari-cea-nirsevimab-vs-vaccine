@@ -1,0 +1,323 @@
+"""Probabilistic Sensitivity Analysis (PSA) for the health economic model."""
+
+import csv
+import math
+import random
+from pathlib import Path
+
+from stat_tools.fit_distributions import fit_beta, fit_normal
+from stat_tools.sampling import sample_truncated_normal
+from util.constants import DAYS_IN_YEAR
+from util.core import calculate_salary_loss, run_scenario
+from util.data_enricher import enrich_agegroup_data, enrich_scalar_data
+from util.data_loader import load_age_groups, load_agegroup_data, load_scalar_data
+
+N = 10_000
+DEFAULT_RNG = random.Random(42)
+
+def _write_results(filename, rows):
+    path = Path(filename)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not rows:
+        return
+    with path.open("w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=rows[0].keys())
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def main():
+    age_groups = load_age_groups()
+    # Define n_sub early so it is available for downstream logic
+    n_sub = len(age_groups)
+    scalar_data = enrich_scalar_data(load_scalar_data())
+    agegroup_data = enrich_agegroup_data(load_agegroup_data(), scalar_data)
+    scalar_data = scalar_data.iloc[0]
+
+    cohort = scalar_data["cohort"]
+    nirsevimab_coverage = scalar_data["nirsevimab_coverage"]
+    vaccine_coverage = scalar_data["vaccine_coverage"]
+    nirsevimab_dose_cost = scalar_data["nirsevimab_dose_cost"]
+    vaccine_dose_cost = scalar_data["vaccine_dose_cost"]
+    severe_case_dw = scalar_data["severe_case_dw"]
+    moderate_case_dw = scalar_data["moderate_case_dw"]
+    severe_illness_duration_days = scalar_data["severe_illness_duration_days"]
+    moderate_illness_duration_days = scalar_data["moderate_illness_duration_days"]
+    discounted_yll = scalar_data["discounted_yll"]
+
+    # Disability weight point estimates + CIs
+    moderate_case_dw = scalar_data["moderate_case_dw"]
+    severe_case_dw = scalar_data["severe_case_dw"]
+    moderate_case_dw_ci95_lower = scalar_data["moderate_case_dw_ci95_lower"]
+    moderate_case_dw_ci95_upper = scalar_data["moderate_case_dw_ci95_upper"]
+    severe_case_dw_ci95_lower = scalar_data["severe_case_dw_ci95_lower"]
+    severe_case_dw_ci95_upper = scalar_data["severe_case_dw_ci95_upper"]
+
+    population_proportions = agegroup_data["population_proportion"].to_list()
+    hosp_proportions = agegroup_data["hosp_proportion"].to_list()
+    outpatient_proportions = agegroup_data["outpatient_proportion"].to_list()
+    lethality_proportions = agegroup_data["lethality_proportion"].to_list()
+    inpatient_costs = agegroup_data["inpatient_cost"].to_list()
+    inpatient_pcr_costs = agegroup_data["inpatient_pcr_cost"].to_list()
+    outpatient_ec_costs = agegroup_data["outpatient_ec_cost"].to_list()
+    outpatient_pc_costs = agegroup_data["outpatient_pc_cost"].to_list()
+    inpatient_transport_costs = agegroup_data["inpatient_transport_cost"].to_list()
+    inpatient_caregiver_salary_losses = agegroup_data["inpatient_caregiver_salary_loss"].to_list()
+    outpatient_transport_costs = agegroup_data["outpatient_transport_cost"].to_list()
+    outpatient_caregiver_salary_losses = agegroup_data["outpatient_caregiver_salary_loss"].to_list()
+    nirsevimab_hosp_reduction_effs = agegroup_data["nirsevimab_hosp_reduction_eff"].to_list()
+    nirsevimab_hosp_reduction_eff_ci95_lowers = agegroup_data["nirsevimab_hosp_reduction_eff_ci95_lower"].to_list()
+    nirsevimab_hosp_reduction_eff_ci95_uppers = agegroup_data["nirsevimab_hosp_reduction_eff_ci95_upper"].to_list()
+    vaccine_hosp_reduction_effs = agegroup_data["vaccine_hosp_reduction_eff"].to_list()
+    nirsevimab_malrti_reduction_effs = agegroup_data["nirsevimab_malrti_reduction_eff"].to_list()
+    vaccine_malrti_reduction_effs = agegroup_data["vaccine_malrti_reduction_eff"].to_list()
+    affected_caregivers_proportions = agegroup_data["affected_caregivers_proportion"].to_list()
+
+    # Fit Beta parameters for DWs
+    moderate_case_dw_alpha, moderate_case_dw_beta = fit_beta(
+        moderate_case_dw,
+        moderate_case_dw_ci95_lower,
+        moderate_case_dw_ci95_upper,
+    )
+    severe_case_dw_alpha, severe_case_dw_beta = fit_beta(
+        severe_case_dw,
+        severe_case_dw_ci95_lower,
+        severe_case_dw_ci95_upper,
+    )
+
+    # Fit normal parameters for every non-zero subgroup effectiveness
+    tn_params_nirsevimab_hosp = [None] * n_sub
+    for i in range(n_sub):
+        if nirsevimab_hosp_reduction_effs[i] != 0:
+            mu_eff, sd_eff = fit_normal(
+                nirsevimab_hosp_reduction_effs[i],
+                nirsevimab_hosp_reduction_eff_ci95_lowers[i],
+                nirsevimab_hosp_reduction_eff_ci95_uppers[i],
+            )
+            tn_params_nirsevimab_hosp[i] = (mu_eff, sd_eff)
+
+    societal_results = []
+    public_results = []
+
+    # Lognormal parameters per subgroup
+    hosp_proportions_ln_params = [
+        (-3.633932, 0.3695873),
+        (-3.881946, 0.284551),
+        (-4.492599, 0.2042144),
+    ]
+    outpatient_proportions_ln_params = [
+        (-2.353393, 0.4034967),
+        (-2.719342, 0.6914414),
+        (-2.626787, 0.4159427),
+    ]
+    inpatient_costs_ln_params = [
+        (6.339864, 0.1303139),
+        (6.022195, 0.1303119),
+        (5.732261, 0.1303193),
+    ]
+    outpatient_pc_costs_ln_params = (2.566759, 0.1302139)
+    outpatient_ec_costs_ln_params = (2.818745, 0.1302757)
+
+    for _ in range(N):
+        # Draw DWs
+        moderate_case_dw = DEFAULT_RNG.betavariate(moderate_case_dw_alpha, moderate_case_dw_beta)
+        severe_case_dw = DEFAULT_RNG.betavariate(severe_case_dw_alpha, severe_case_dw_beta)
+
+        # Random subgroup draws
+        rand_hosp_proportions = [
+            math.exp(DEFAULT_RNG.gauss(mu, sigma)) for (mu, sigma) in hosp_proportions_ln_params
+        ]
+        rand_outpatient_proportions = [
+            math.exp(DEFAULT_RNG.gauss(mu, sigma)) for (mu, sigma) in outpatient_proportions_ln_params
+        ]
+        rand_inpatient_costs = [
+            math.exp(DEFAULT_RNG.gauss(mu, sigma)) for (mu, sigma) in inpatient_costs_ln_params
+        ]
+        rand_outpatient_pc_costs = [
+            math.exp(DEFAULT_RNG.gauss(*outpatient_pc_costs_ln_params)) for _ in range(n_sub)
+        ]
+        rand_outpatient_ec_costs = [
+            math.exp(DEFAULT_RNG.gauss(*outpatient_ec_costs_ln_params)) for _ in range(n_sub)
+        ]
+
+        # Caregiver salary draws
+        caregiver_daily_salary_draws = sample_truncated_normal(
+            n_sub,
+            mean=5.8498,
+            sd=0.8966,
+            lo=0.0,
+            hi=math.inf,
+            rng=DEFAULT_RNG,
+        )
+        rand_inpatient_caregiver_salary_losses = [
+            calculate_salary_loss(
+                severe_illness_duration_days,
+                affected_caregivers_proportions[i],
+                caregiver_daily_salary_draws[i],
+            )
+            for i in range(n_sub)
+        ]
+        rand_outpatient_caregiver_salary_losses = [
+            calculate_salary_loss(
+                moderate_illness_duration_days,
+                affected_caregivers_proportions[i],
+                caregiver_daily_salary_draws[i],
+            )
+            for i in range(n_sub)
+        ]
+
+        # Nirsevimab effectiveness (hospitalization): truncated normal where mean != 0, else fixed
+        rand_nirsevimab_hosp_reduction_effs = []
+        for i in range(n_sub):
+            params = tn_params_nirsevimab_hosp[i]
+            if params is not None:
+                mu, sd = params
+                sampled = sample_truncated_normal(1, mu, sd, rng=DEFAULT_RNG)[0]
+                rand_nirsevimab_hosp_reduction_effs.append(sampled)
+            else:
+                # Keep original fixed mean (zero)
+                rand_nirsevimab_hosp_reduction_effs.append(nirsevimab_hosp_reduction_effs[i])
+
+        # MALRTI reduction effectiveness unchanged (Beta for first two, fixed third)
+        rand_nirsevimab_malrti_reduction_effs = [
+            DEFAULT_RNG.betavariate(25.486, 11.794),
+            DEFAULT_RNG.betavariate(25.486, 11.794),
+            nirsevimab_malrti_reduction_effs[2],
+        ]
+
+        # Coverage draw
+        nirsevimab_coverage_draw = DEFAULT_RNG.betavariate(3.939, 0.525)
+
+        # Societal perspective
+        result_societal_nirsevimab_dict = run_scenario(
+            cohort,
+            nirsevimab_coverage_draw,
+            nirsevimab_dose_cost,
+            severe_case_dw,
+            moderate_case_dw,
+            severe_illness_duration_days,
+            moderate_illness_duration_days,
+            DAYS_IN_YEAR,
+            discounted_yll,
+            population_proportions,
+            rand_hosp_proportions,
+            rand_outpatient_proportions,
+            lethality_proportions,
+            rand_inpatient_costs,
+            inpatient_pcr_costs,
+            rand_outpatient_ec_costs,
+            rand_outpatient_pc_costs,
+            inpatient_transport_costs,
+            rand_inpatient_caregiver_salary_losses,
+            outpatient_transport_costs,
+            rand_outpatient_caregiver_salary_losses,
+            rand_nirsevimab_hosp_reduction_effs,
+            rand_nirsevimab_malrti_reduction_effs,
+        )
+        result_societal_vaccine_dict = run_scenario(
+            cohort,
+            vaccine_coverage,
+            vaccine_dose_cost,
+            severe_case_dw,
+            moderate_case_dw,
+            severe_illness_duration_days,
+            moderate_illness_duration_days,
+            DAYS_IN_YEAR,
+            discounted_yll,
+            population_proportions,
+            rand_hosp_proportions,
+            rand_outpatient_proportions,
+            lethality_proportions,
+            rand_inpatient_costs,
+            inpatient_pcr_costs,
+            rand_outpatient_ec_costs,
+            rand_outpatient_pc_costs,
+            inpatient_transport_costs,
+            rand_inpatient_caregiver_salary_losses,
+            outpatient_transport_costs,
+            rand_outpatient_caregiver_salary_losses,
+            vaccine_hosp_reduction_effs,
+            vaccine_malrti_reduction_effs,
+        )
+
+        # Public perspective (zero salary losses)
+
+        result_public_nirsevimab_dict = run_scenario(
+            cohort,
+            nirsevimab_coverage_draw,
+            nirsevimab_dose_cost,
+            severe_case_dw,
+            moderate_case_dw,
+            severe_illness_duration_days,
+            moderate_illness_duration_days,
+            DAYS_IN_YEAR,
+            discounted_yll,
+            population_proportions,
+            rand_hosp_proportions,
+            rand_outpatient_proportions,
+            lethality_proportions,
+            rand_inpatient_costs,
+            inpatient_pcr_costs,
+            rand_outpatient_ec_costs,
+            rand_outpatient_pc_costs,
+            inpatient_transport_costs,
+            [0.0] * n_sub,
+            outpatient_transport_costs,
+            [0.0] * n_sub,
+            nirsevimab_hosp_reduction_effs,
+            nirsevimab_malrti_reduction_effs,
+        )
+        result_public_vaccine_dict = run_scenario(
+            cohort,
+            vaccine_coverage,
+            vaccine_dose_cost,
+            severe_case_dw,
+            moderate_case_dw,
+            severe_illness_duration_days,
+            moderate_illness_duration_days,
+            DAYS_IN_YEAR,
+            discounted_yll,
+            population_proportions,
+            rand_hosp_proportions,
+            rand_outpatient_proportions,
+            lethality_proportions,
+            rand_inpatient_costs,
+            inpatient_pcr_costs,
+            rand_outpatient_ec_costs,
+            rand_outpatient_pc_costs,
+            inpatient_transport_costs,
+            [0.0] * n_sub,
+            outpatient_transport_costs,
+            [0.0] * n_sub,
+            vaccine_hosp_reduction_effs,
+            vaccine_malrti_reduction_effs,
+        )
+
+        societal_results.append(
+            {
+                "incremental-cost": result_societal_nirsevimab_dict["cost"]
+                - result_societal_vaccine_dict["cost"],
+                "incremental-dalys": result_societal_vaccine_dict["dalys"]
+                - result_societal_nirsevimab_dict["dalys"],
+                "moderate_case_dw_sample": moderate_case_dw,
+                "severe_case_dw_sample": severe_case_dw,
+            }
+        )
+        public_results.append(
+            {
+                "incremental-cost": result_public_nirsevimab_dict["cost"]
+                - result_public_vaccine_dict["cost"],
+                "incremental-dalys": result_public_vaccine_dict["dalys"]
+                - result_public_nirsevimab_dict["dalys"],
+                "moderate_case_dw_sample": moderate_case_dw,
+                "severe_case_dw_sample": severe_case_dw,
+            }
+        )
+
+    print("Iterations:", N)
+    _write_results("results/psa/public.csv", public_results)
+    _write_results("results/psa/societal.csv", societal_results)
+
+
+if __name__ == "__main__":
+    main()
