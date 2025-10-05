@@ -33,9 +33,13 @@ def main():
         outpatient_ec_costs=agegroup_data["outpatient_ec_cost"].to_list(),
         outpatient_pc_costs=agegroup_data["outpatient_pc_cost"].to_list(),
         inpatient_transport_costs=agegroup_data["inpatient_transport_cost"].to_list(),
-        inpatient_caregiver_salary_losses=agegroup_data["inpatient_caregiver_salary_loss"].to_list(),
+        inpatient_caregiver_salary_losses=agegroup_data[
+            "inpatient_caregiver_salary_loss"
+        ].to_list(),
         outpatient_transport_costs=agegroup_data["outpatient_transport_cost"].to_list(),
-        outpatient_caregiver_salary_losses=agegroup_data["outpatient_caregiver_salary_loss"].to_list(),
+        outpatient_caregiver_salary_losses=agegroup_data[
+            "outpatient_caregiver_salary_loss"
+        ].to_list(),
         hosp_reduction_effs=agegroup_data["nirsevimab_hosp_reduction_eff"].to_list(),
         malrti_reduction_effs=agegroup_data["nirsevimab_malrti_reduction_eff"].to_list(),
     )
@@ -59,9 +63,13 @@ def main():
         outpatient_ec_costs=agegroup_data["outpatient_ec_cost"].to_list(),
         outpatient_pc_costs=agegroup_data["outpatient_pc_cost"].to_list(),
         inpatient_transport_costs=agegroup_data["inpatient_transport_cost"].to_list(),
-        inpatient_caregiver_salary_losses=agegroup_data["inpatient_caregiver_salary_loss"].to_list(),
+        inpatient_caregiver_salary_losses=agegroup_data[
+            "inpatient_caregiver_salary_loss"
+        ].to_list(),
         outpatient_transport_costs=agegroup_data["outpatient_transport_cost"].to_list(),
-        outpatient_caregiver_salary_losses=agegroup_data["outpatient_caregiver_salary_loss"].to_list(),
+        outpatient_caregiver_salary_losses=agegroup_data[
+            "outpatient_caregiver_salary_loss"
+        ].to_list(),
         hosp_reduction_effs=agegroup_data["vaccine_hosp_reduction_eff"].to_list(),
         malrti_reduction_effs=agegroup_data["vaccine_malrti_reduction_eff"].to_list(),
     )

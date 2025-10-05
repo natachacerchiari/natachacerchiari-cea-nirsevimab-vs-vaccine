@@ -20,7 +20,11 @@ def enrich_scalar_data(scalar_data: pd.DataFrame) -> pd.DataFrame:
       - nirsevimab_dose_cost
       - vaccine_dose_cost
     """
-    required_yll_cols = {"discount_rate", "life_expectancy_floor", "life_expectancy_last_year_remainder"}
+    required_yll_cols = {
+        "discount_rate",
+        "life_expectancy_floor",
+        "life_expectancy_last_year_remainder",
+    }
     if not required_yll_cols.issubset(scalar_data.columns):
         raise ValueError(f"Input DataFrame must contain {required_yll_cols} columns.")
     scalar_data["discounted_yll"] = scalar_data.apply(
@@ -44,7 +48,9 @@ def enrich_scalar_data(scalar_data: pd.DataFrame) -> pd.DataFrame:
         raise ValueError(f"Input DataFrame must contain {required_cost_cols} columns.")
     scalar_data["nirsevimab_dose_cost"] = scalar_data.apply(
         lambda r: calculate_dose_cost(
-            r["nirsevimab_unit_cost"], r["nirsevimab_wastage_rate"], r["nirsevimab_administration_cost"]
+            r["nirsevimab_unit_cost"],
+            r["nirsevimab_wastage_rate"],
+            r["nirsevimab_administration_cost"],
         ),
         axis=1,
     )

@@ -192,7 +192,9 @@ maxi = float(scalar_row["nirsevimab_max_expected_coverage"])
 nirsevimab_coverage_samples = [
     pert.rvs(mini=mini, mode=mode, maxi=maxi, random_state=NP_RNG) for _ in range(N)
 ]
-_save_hist(nirsevimab_coverage_samples, "nirsevimab_coverage (PERT)", "nirsevimab_coverage_pert.png")
+_save_hist(
+    nirsevimab_coverage_samples, "nirsevimab_coverage (PERT)", "nirsevimab_coverage_pert.png"
+)
 
 # Direct medical costs (inpatient per subgroup; outpatient single)
 variation = 0.25
@@ -221,7 +223,9 @@ salary_mean = float(agegroup_data_df.iloc[0]["caregiver_daily_salary"])
 mu_sal, sigma_sal = fit_lognormal_briggs(salary_mean, variation)
 salary_samples = [math.exp(DEFAULT_RNG.gauss(mu_sal, sigma_sal)) for _ in range(N)]
 _save_hist(
-    salary_samples, "caregiver_daily_salary (Lognormal Briggs)", "caregiver_daily_salary_lognormal.png"
+    salary_samples,
+    "caregiver_daily_salary (Lognormal Briggs)",
+    "caregiver_daily_salary_lognormal.png",
 )
 
 

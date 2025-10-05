@@ -45,7 +45,9 @@ def _calculate_subgroup_cost(
     """
 
     hosp_cases = _compute_cases_with_eff(population, hosp_proportion, hosp_reduction_eff)
-    outpatient_cases = _compute_cases_with_eff(population, outpatient_proportion, malrti_reduction_eff)
+    outpatient_cases = _compute_cases_with_eff(
+        population, outpatient_proportion, malrti_reduction_eff
+    )
 
     inpatient_base = (
         inpatient_cost
@@ -87,7 +89,9 @@ def _calculate_subgroup_dalys(
         raise ValueError("days_in_year must be > 0.")
 
     hosp_cases = _compute_cases_with_eff(population, hosp_proportion, hosp_reduction_eff)
-    outpatient_cases = _compute_cases_with_eff(population, outpatient_proportion, malrti_reduction_eff)
+    outpatient_cases = _compute_cases_with_eff(
+        population, outpatient_proportion, malrti_reduction_eff
+    )
     hosp_death_cases = _compute_death_cases(hosp_cases, lethality)
     hosp_cure_cases = _compute_cure_cases(hosp_cases, hosp_death_cases)
 
@@ -153,16 +157,22 @@ def calculate_inpatient_transport_cost(
     return inpatient_transport_cost
 
 
-def calculate_outpatient_transport_cost(consultations: float, transport_cost_per_trip: float) -> float:
+def calculate_outpatient_transport_cost(
+    consultations: float, transport_cost_per_trip: float
+) -> float:
     """
     Calculate outpatient transport cost per patient considering round trips.
     """
-    outpatient_transport_cost = consultations * 2 * transport_cost_per_trip  # times 2 for round trip
+    outpatient_transport_cost = (
+        consultations * 2 * transport_cost_per_trip
+    )  # times 2 for round trip
     return outpatient_transport_cost
 
 
 def calculate_salary_loss(
-    illness_duration_days: float, affected_caregivers_proportion: float, caregiver_daily_salary: float
+    illness_duration_days: float,
+    affected_caregivers_proportion: float,
+    caregiver_daily_salary: float,
 ) -> float:
     """
     Calculate average caregiver salary loss per patient.
@@ -223,7 +233,9 @@ def run_scenario(
     ]
     lengths = [len(s) for s in seqs]
     if len(set(lengths)) != 1:
-        raise ValueError(f"All subgroup sequences must have identical length. Got lengths: {lengths}")
+        raise ValueError(
+            f"All subgroup sequences must have identical length. Got lengths: {lengths}"
+        )
     n = lengths[0]
     if n == 0:
         return {"cost": cohort * coverage * intervention_dose_cost, "dalys": 0.0}

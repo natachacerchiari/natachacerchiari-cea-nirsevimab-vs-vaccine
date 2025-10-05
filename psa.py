@@ -353,8 +353,12 @@ def main():
         )
 
     print("Iterations:", N)
-    pd.DataFrame(public_results).to_csv("results/psa/psa_public.csv", index=False, encoding="utf-8", lineterminator="\n")
-    pd.DataFrame(societal_results).to_csv("results/psa/psa_societal.csv", index=False, encoding="utf-8", lineterminator="\n")
+    pd.DataFrame(public_results).to_csv(
+        "results/psa/psa_public.csv", index=False, encoding="utf-8", lineterminator="\n"
+    )
+    pd.DataFrame(societal_results).to_csv(
+        "results/psa/psa_societal.csv", index=False, encoding="utf-8", lineterminator="\n"
+    )
 
 
 if __name__ == "__main__":

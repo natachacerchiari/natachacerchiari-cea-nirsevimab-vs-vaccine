@@ -53,7 +53,9 @@ def fit_beta(mean_target: float, lower_target: float, upper_target: float) -> Tu
     return float(a_opt), float(b_opt)
 
 
-def fit_lognormal(mean_target: float, lower_target: float, upper_target: float) -> Tuple[float, float]:
+def fit_lognormal(
+    mean_target: float, lower_target: float, upper_target: float
+) -> Tuple[float, float]:
     """
     Fit Lognormal parameters (mu, sigma) in log-space from mean and 95% CI bounds.
     Returns (mu, sigma).
