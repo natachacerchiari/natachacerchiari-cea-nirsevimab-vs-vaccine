@@ -1,10 +1,9 @@
 """Probabilistic Sensitivity Analysis (PSA) for the health economic model."""
 
-import csv
 import random
-from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from betapert import pert
 
 from stat_tools.fit_distributions import (
@@ -22,17 +21,6 @@ N = 10_000
 
 DEFAULT_RNG = random.Random(42)
 NP_RNG = np.random.default_rng(42)
-
-
-def _write_results(filename, rows):
-    path = Path(filename)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if not rows:
-        return
-    with path.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=rows[0].keys())
-        writer.writeheader()
-        writer.writerows(rows)
 
 
 def main():
@@ -371,8 +359,8 @@ def main():
         )
 
     print("Iterations:", N)
-    _write_results("results/psa/public.csv", public_results)
-    _write_results("results/psa/societal.csv", societal_results)
+    pd.DataFrame(public_results).to_csv("results/psa/public.csv", index=False, encoding="utf-8", lineterminator="\r\n")
+    pd.DataFrame(societal_results).to_csv("results/psa/societal.csv", index=False, encoding="utf-8", lineterminator="\r\n")
 
 
 if __name__ == "__main__":
