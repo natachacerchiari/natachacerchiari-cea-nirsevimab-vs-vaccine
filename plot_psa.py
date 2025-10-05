@@ -11,8 +11,8 @@ import seaborn as sns
 sns.set_theme(style="whitegrid")
 
 # Read CSV files
-df1 = pd.read_csv("results/psa/public.csv")
-df2 = pd.read_csv("results/psa/societal.csv")
+df1 = pd.read_csv("results/psa/psa_public.csv")
+df2 = pd.read_csv("results/psa/psa_societal.csv")
 
 WTP = 8016.03  # Willingness To Pay [USD per DALY averted]
 
