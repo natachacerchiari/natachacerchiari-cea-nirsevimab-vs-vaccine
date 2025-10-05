@@ -1,15 +1,16 @@
 """Probabilistic Sensitivity Analysis (PSA) for the health economic model."""
 
 import csv
-import math
 import random
 from pathlib import Path
+
+import numpy as np
+from betapert import pert
 
 from stat_tools.fit_distributions import (
     fit_beta,
     fit_lognormal,
     fit_lognormal_briggs,
-    fit_normal,
 )
 from stat_tools.sampling import sample_lognormal, sample_truncated_normal
 from util.constants import DAYS_IN_YEAR
@@ -18,7 +19,9 @@ from util.data_enricher import enrich_agegroup_data, enrich_scalar_data
 from util.data_loader import load_age_groups, load_agegroup_data, load_scalar_data
 
 N = 10_000
+
 DEFAULT_RNG = random.Random(42)
+NP_RNG = np.random.default_rng(42)
 
 
 def _write_results(filename, rows):
@@ -43,6 +46,8 @@ def main():
     # Extract scalar values
     cohort = scalar_data["cohort"]
     nirsevimab_coverage = scalar_data["nirsevimab_coverage"]
+    nirsevimab_min_expected_coverage = scalar_data["nirsevimab_min_expected_coverage"]
+    nirsevimab_max_expected_coverage = scalar_data["nirsevimab_max_expected_coverage"]
     vaccine_coverage = scalar_data["vaccine_coverage"]
     nirsevimab_dose_cost = scalar_data["nirsevimab_dose_cost"]
     vaccine_dose_cost = scalar_data["vaccine_dose_cost"]
@@ -230,13 +235,19 @@ def main():
             else:
                 rand_nirsevimab_malrti_reduction_effs.append(nirsevimab_malrti_reduction_effs[i])
 
-        # Coverage draw
-        nirsevimab_coverage_draw = DEFAULT_RNG.betavariate(3.939, 0.525)
+        # Nirsevimab coverage
+        rand_nirsevimab_coverage = pert.rvs(
+            mini=nirsevimab_min_expected_coverage,
+            mode=nirsevimab_coverage,
+            maxi=nirsevimab_max_expected_coverage,
+            random_state=NP_RNG,
+        )
 
         # Societal perspective
+
         result_societal_nirsevimab_dict = run_scenario(
             cohort,
-            nirsevimab_coverage_draw,
+            rand_nirsevimab_coverage,
             nirsevimab_dose_cost,
             severe_case_dw,
             moderate_case_dw,
@@ -289,7 +300,7 @@ def main():
 
         result_public_nirsevimab_dict = run_scenario(
             cohort,
-            nirsevimab_coverage_draw,
+            rand_nirsevimab_coverage,
             nirsevimab_dose_cost,
             severe_case_dw,
             moderate_case_dw,
