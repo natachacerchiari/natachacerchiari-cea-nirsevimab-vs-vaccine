@@ -74,20 +74,20 @@ def fit_lognormal(mean_target: float, lower_target: float, upper_target: float) 
     return float(mu), float(sigma)
 
 
-def fit_lognormal_briggs(central_value: float, variation_pct: float = 0.25) -> Tuple[float, float]:
+def fit_lognormal_briggs(central_value: float, variation: float) -> Tuple[float, float]:
     """
     Implementation based on Briggs et al. (2006).
     Assumes central_value is the median,
-    and variation_pct is the percentage variation (e.g., 0.25 for ±25%).
+    and variation is the percentage variation (e.g., 0.25 for ±25%).
     Returns (mu, sigma).
     """
     if central_value <= 0:
         raise ValueError("central_value must be > 0.")
-    if variation_pct <= 0:
-        raise ValueError("variation_pct must be > 0.")
+    if variation <= 0:
+        raise ValueError("variation must be > 0.")
 
-    lower_bound = central_value * (1 - variation_pct)
-    upper_bound = central_value * (1 + variation_pct)
+    lower_bound = central_value * (1 - variation)
+    upper_bound = central_value * (1 + variation)
 
     mu = np.log(central_value)  # median in original scale
     sigma = (np.log(upper_bound) - np.log(lower_bound)) / (2 * 1.96)
