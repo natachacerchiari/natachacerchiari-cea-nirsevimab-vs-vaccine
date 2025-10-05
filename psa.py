@@ -6,7 +6,7 @@ import random
 from pathlib import Path
 
 from stat_tools.fit_distributions import fit_beta, fit_normal
-from stat_tools.sampling import sample_truncated_normal
+from stat_tools.sampling import sample_truncated_normal, sample_lognormal
 from util.constants import DAYS_IN_YEAR
 from util.core import calculate_salary_loss, run_scenario
 from util.data_enricher import enrich_agegroup_data, enrich_scalar_data
@@ -14,6 +14,7 @@ from util.data_loader import load_age_groups, load_agegroup_data, load_scalar_da
 
 N = 10_000
 DEFAULT_RNG = random.Random(42)
+
 
 def _write_results(filename, rows):
     path = Path(filename)
@@ -66,8 +67,12 @@ def main():
     outpatient_transport_costs = agegroup_data["outpatient_transport_cost"].to_list()
     outpatient_caregiver_salary_losses = agegroup_data["outpatient_caregiver_salary_loss"].to_list()
     nirsevimab_hosp_reduction_effs = agegroup_data["nirsevimab_hosp_reduction_eff"].to_list()
-    nirsevimab_hosp_reduction_eff_ci95_lowers = agegroup_data["nirsevimab_hosp_reduction_eff_ci95_lower"].to_list()
-    nirsevimab_hosp_reduction_eff_ci95_uppers = agegroup_data["nirsevimab_hosp_reduction_eff_ci95_upper"].to_list()
+    nirsevimab_hosp_reduction_eff_ci95_lowers = agegroup_data[
+        "nirsevimab_hosp_reduction_eff_ci95_lower"
+    ].to_list()
+    nirsevimab_hosp_reduction_eff_ci95_uppers = agegroup_data[
+        "nirsevimab_hosp_reduction_eff_ci95_upper"
+    ].to_list()
     vaccine_hosp_reduction_effs = agegroup_data["vaccine_hosp_reduction_eff"].to_list()
     nirsevimab_malrti_reduction_effs = agegroup_data["nirsevimab_malrti_reduction_eff"].to_list()
     vaccine_malrti_reduction_effs = agegroup_data["vaccine_malrti_reduction_eff"].to_list()
@@ -99,7 +104,7 @@ def main():
     societal_results = []
     public_results = []
 
-    # Lognormal parameters per subgroup
+    # Lognormal parameters per age group
     hosp_proportions_ln_params = [
         (-3.633932, 0.3695873),
         (-3.881946, 0.284551),
@@ -115,29 +120,42 @@ def main():
         (6.022195, 0.1303119),
         (5.732261, 0.1303193),
     ]
-    outpatient_pc_costs_ln_params = (2.566759, 0.1302139)
-    outpatient_ec_costs_ln_params = (2.818745, 0.1302757)
+    outpatient_pc_costs_ln_params = [
+        (2.566759, 0.1302139),
+        (2.566759, 0.1302139),
+        (2.566759, 0.1302139),
+    ]
+    outpatient_ec_costs_ln_params = [
+        (2.818745, 0.1302757),
+        (2.818745, 0.1302757),
+        (2.818745, 0.1302757),
+    ]
 
     for _ in range(N):
         # Draw DWs
         moderate_case_dw = DEFAULT_RNG.betavariate(moderate_case_dw_alpha, moderate_case_dw_beta)
         severe_case_dw = DEFAULT_RNG.betavariate(severe_case_dw_alpha, severe_case_dw_beta)
 
-        # Random subgroup draws
+        # Random draws per age group
         rand_hosp_proportions = [
-            math.exp(DEFAULT_RNG.gauss(mu, sigma)) for (mu, sigma) in hosp_proportions_ln_params
+            sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
+            for (mu, sigma) in hosp_proportions_ln_params
         ]
         rand_outpatient_proportions = [
-            math.exp(DEFAULT_RNG.gauss(mu, sigma)) for (mu, sigma) in outpatient_proportions_ln_params
+            sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
+            for (mu, sigma) in outpatient_proportions_ln_params
         ]
         rand_inpatient_costs = [
-            math.exp(DEFAULT_RNG.gauss(mu, sigma)) for (mu, sigma) in inpatient_costs_ln_params
+            sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
+            for (mu, sigma) in inpatient_costs_ln_params
         ]
         rand_outpatient_pc_costs = [
-            math.exp(DEFAULT_RNG.gauss(*outpatient_pc_costs_ln_params)) for _ in range(n_sub)
+            sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
+            for (mu, sigma) in outpatient_pc_costs_ln_params
         ]
         rand_outpatient_ec_costs = [
-            math.exp(DEFAULT_RNG.gauss(*outpatient_ec_costs_ln_params)) for _ in range(n_sub)
+            sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
+            for (mu, sigma) in outpatient_ec_costs_ln_params
         ]
 
         # Caregiver salary draws
