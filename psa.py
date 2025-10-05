@@ -341,8 +341,6 @@ def main():
                 - result_societal_vaccine_dict["cost"],
                 "incremental-dalys": result_societal_vaccine_dict["dalys"]
                 - result_societal_nirsevimab_dict["dalys"],
-                "moderate_case_dw_sample": moderate_case_dw,
-                "severe_case_dw_sample": severe_case_dw,
             }
         )
         public_results.append(
@@ -351,8 +349,6 @@ def main():
                 - result_public_vaccine_dict["cost"],
                 "incremental-dalys": result_public_vaccine_dict["dalys"]
                 - result_public_nirsevimab_dict["dalys"],
-                "moderate_case_dw_sample": moderate_case_dw,
-                "severe_case_dw_sample": severe_case_dw,
             }
         )
 
