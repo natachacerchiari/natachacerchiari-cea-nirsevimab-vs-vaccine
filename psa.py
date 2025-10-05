@@ -5,8 +5,13 @@ import math
 import random
 from pathlib import Path
 
-from stat_tools.fit_distributions import fit_beta, fit_normal
-from stat_tools.sampling import sample_truncated_normal, sample_lognormal
+from stat_tools.fit_distributions import (
+    fit_beta,
+    fit_lognormal,
+    fit_lognormal_briggs,
+    fit_normal,
+)
+from stat_tools.sampling import sample_lognormal, sample_truncated_normal
 from util.constants import DAYS_IN_YEAR
 from util.core import calculate_salary_loss, run_scenario
 from util.data_enricher import enrich_agegroup_data, enrich_scalar_data
@@ -29,12 +34,13 @@ def _write_results(filename, rows):
 
 def main():
     age_groups = load_age_groups()
-    # Define n_sub early so it is available for downstream logic
     n_sub = len(age_groups)
+
     scalar_data = enrich_scalar_data(load_scalar_data())
     agegroup_data = enrich_agegroup_data(load_agegroup_data(), scalar_data)
     scalar_data = scalar_data.iloc[0]
 
+    # Extract scalar values
     cohort = scalar_data["cohort"]
     nirsevimab_coverage = scalar_data["nirsevimab_coverage"]
     vaccine_coverage = scalar_data["vaccine_coverage"]
@@ -45,8 +51,6 @@ def main():
     severe_illness_duration_days = scalar_data["severe_illness_duration_days"]
     moderate_illness_duration_days = scalar_data["moderate_illness_duration_days"]
     discounted_yll = scalar_data["discounted_yll"]
-
-    # Disability weight point estimates + CIs
     moderate_case_dw = scalar_data["moderate_case_dw"]
     severe_case_dw = scalar_data["severe_case_dw"]
     moderate_case_dw_ci95_lower = scalar_data["moderate_case_dw_ci95_lower"]
@@ -54,9 +58,14 @@ def main():
     severe_case_dw_ci95_lower = scalar_data["severe_case_dw_ci95_lower"]
     severe_case_dw_ci95_upper = scalar_data["severe_case_dw_ci95_upper"]
 
+    # Extract agegroup values as lists
     population_proportions = agegroup_data["population_proportion"].to_list()
     hosp_proportions = agegroup_data["hosp_proportion"].to_list()
+    hosp_proportion_ci95_lowers = agegroup_data["hosp_proportion_ci95_lower"].to_list()
+    hosp_proportion_ci95_uppers = agegroup_data["hosp_proportion_ci95_upper"].to_list()
     outpatient_proportions = agegroup_data["outpatient_proportion"].to_list()
+    outpatient_proportion_ci95_lowers = agegroup_data["outpatient_proportion_ci95_lower"].to_list()
+    outpatient_proportion_ci95_uppers = agegroup_data["outpatient_proportion_ci95_upper"].to_list()
     lethality_proportions = agegroup_data["lethality_proportion"].to_list()
     inpatient_costs = agegroup_data["inpatient_cost"].to_list()
     inpatient_pcr_costs = agegroup_data["inpatient_pcr_cost"].to_list()
@@ -90,7 +99,7 @@ def main():
         severe_case_dw_ci95_upper,
     )
 
-    # Fit normal parameters for every non-zero subgroup effectiveness
+    # Fit normal parameters for nirsevimab hospitalization effectiveness where mean != 0
     tn_params_nirsevimab_hosp = [None] * n_sub
     for i in range(n_sub):
         if nirsevimab_hosp_reduction_effs[i] != 0:
@@ -101,35 +110,31 @@ def main():
             )
             tn_params_nirsevimab_hosp[i] = (mu_eff, sd_eff)
 
+    # Fit lognormal parameters for proportions
+    hosp_proportions_params = [
+        fit_lognormal(
+            hosp_proportions[i],
+            hosp_proportion_ci95_lowers[i],
+            hosp_proportion_ci95_uppers[i],
+        )
+        for i in range(n_sub)
+    ]
+    outpatient_proportions_params = [
+        fit_lognormal(
+            outpatient_proportions[i],
+            outpatient_proportion_ci95_lowers[i],
+            outpatient_proportion_ci95_uppers[i],
+        )
+        for i in range(n_sub)
+    ]
+
+    # Fit lognormal (Briggs) parameters for costs (25% variation)
+    inpatient_costs_params = [fit_lognormal_briggs(c, 0.25) for c in inpatient_costs]
+    outpatient_pc_costs_params = [fit_lognormal_briggs(c, 0.25) for c in outpatient_pc_costs]
+    outpatient_ec_costs_params = [fit_lognormal_briggs(c, 0.25) for c in outpatient_ec_costs]
+
     societal_results = []
     public_results = []
-
-    # Lognormal parameters per age group
-    hosp_proportions_ln_params = [
-        (-3.633932, 0.3695873),
-        (-3.881946, 0.284551),
-        (-4.492599, 0.2042144),
-    ]
-    outpatient_proportions_ln_params = [
-        (-2.353393, 0.4034967),
-        (-2.719342, 0.6914414),
-        (-2.626787, 0.4159427),
-    ]
-    inpatient_costs_ln_params = [
-        (6.339864, 0.1303139),
-        (6.022195, 0.1303119),
-        (5.732261, 0.1303193),
-    ]
-    outpatient_pc_costs_ln_params = [
-        (2.566759, 0.1302139),
-        (2.566759, 0.1302139),
-        (2.566759, 0.1302139),
-    ]
-    outpatient_ec_costs_ln_params = [
-        (2.818745, 0.1302757),
-        (2.818745, 0.1302757),
-        (2.818745, 0.1302757),
-    ]
 
     for _ in range(N):
         # Draw DWs
@@ -139,23 +144,23 @@ def main():
         # Random draws per age group
         rand_hosp_proportions = [
             sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
-            for (mu, sigma) in hosp_proportions_ln_params
+            for (mu, sigma) in hosp_proportions_params
         ]
         rand_outpatient_proportions = [
             sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
-            for (mu, sigma) in outpatient_proportions_ln_params
+            for (mu, sigma) in outpatient_proportions_params
         ]
         rand_inpatient_costs = [
             sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
-            for (mu, sigma) in inpatient_costs_ln_params
+            for (mu, sigma) in inpatient_costs_params
         ]
         rand_outpatient_pc_costs = [
             sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
-            for (mu, sigma) in outpatient_pc_costs_ln_params
+            for (mu, sigma) in outpatient_pc_costs_params
         ]
         rand_outpatient_ec_costs = [
             sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
-            for (mu, sigma) in outpatient_ec_costs_ln_params
+            for (mu, sigma) in outpatient_ec_costs_params
         ]
 
         # Caregiver salary draws
