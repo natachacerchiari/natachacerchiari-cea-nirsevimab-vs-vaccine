@@ -82,13 +82,19 @@ def main():
     nirsevimab_hosp_reduction_eff_ci95_uppers = agegroup_data[
         "nirsevimab_hosp_reduction_eff_ci95_upper"
     ].to_list()
-    vaccine_hosp_reduction_effs = agegroup_data["vaccine_hosp_reduction_eff"].to_list()
     nirsevimab_malrti_reduction_effs = agegroup_data["nirsevimab_malrti_reduction_eff"].to_list()
+    nirsevimab_malrti_reduction_eff_ci95_lowers = agegroup_data[
+        "nirsevimab_malrti_reduction_eff_ci95_lower"
+    ].to_list()
+    nirsevimab_malrti_reduction_eff_ci95_uppers = agegroup_data[
+        "nirsevimab_malrti_reduction_eff_ci95_upper"
+    ].to_list()
+    vaccine_hosp_reduction_effs = agegroup_data["vaccine_hosp_reduction_eff"].to_list()
     vaccine_malrti_reduction_effs = agegroup_data["vaccine_malrti_reduction_eff"].to_list()
     affected_caregivers_proportions = agegroup_data["affected_caregivers_proportion"].to_list()
     caregiver_daily_salaries = agegroup_data["caregiver_daily_salary"].to_list()
 
-    # Fit Beta parameters for DWs
+    # Fit beta parameters for DWs
     moderate_case_dw_alpha, moderate_case_dw_beta = fit_beta(
         moderate_case_dw,
         moderate_case_dw_ci95_lower,
@@ -99,17 +105,6 @@ def main():
         severe_case_dw_ci95_lower,
         severe_case_dw_ci95_upper,
     )
-
-    # Fit normal parameters for nirsevimab hospitalization effectiveness where mean != 0
-    tn_params_nirsevimab_hosp = [None] * n_sub
-    for i in range(n_sub):
-        if nirsevimab_hosp_reduction_effs[i] != 0:
-            mu_eff, sd_eff = fit_normal(
-                nirsevimab_hosp_reduction_effs[i],
-                nirsevimab_hosp_reduction_eff_ci95_lowers[i],
-                nirsevimab_hosp_reduction_eff_ci95_uppers[i],
-            )
-            tn_params_nirsevimab_hosp[i] = (mu_eff, sd_eff)
 
     # Fit lognormal parameters for proportions
     hosp_proportions_params = [
@@ -138,6 +133,28 @@ def main():
     caregiver_daily_salary_params = [
         fit_lognormal_briggs(c, 0.25) for c in caregiver_daily_salaries
     ]
+
+    # Fit beta parameters for nirsevimab effectiveness (hospitalization reduction)
+    nirsevimab_hosp_reduction_params = [None] * n_sub
+    for i in range(n_sub):
+        if nirsevimab_hosp_reduction_effs[i] != 0:
+            alpha, beta = fit_beta(
+                nirsevimab_hosp_reduction_effs[i],
+                nirsevimab_hosp_reduction_eff_ci95_lowers[i],
+                nirsevimab_hosp_reduction_eff_ci95_uppers[i],
+            )
+            nirsevimab_hosp_reduction_params[i] = (alpha, beta)
+
+    # Fit beta parameters for nirsevimab effectiveness (malrti reduction)
+    nirsevimab_malrti_reduction_params = [None] * n_sub
+    for i in range(n_sub):
+        if nirsevimab_malrti_reduction_effs[i] != 0:
+            alpha, beta = fit_beta(
+                nirsevimab_malrti_reduction_effs[i],
+                nirsevimab_malrti_reduction_eff_ci95_lowers[i],
+                nirsevimab_malrti_reduction_eff_ci95_uppers[i],
+            )
+            nirsevimab_malrti_reduction_params[i] = (alpha, beta)
 
     societal_results = []
     public_results = []
@@ -191,24 +208,27 @@ def main():
             for i in range(n_sub)
         ]
 
-        # Nirsevimab effectiveness (hospitalization): truncated normal where mean != 0, else fixed
+        # Nirsevimab effectiveness (hospitalization): beta where mean != 0, else fixed
         rand_nirsevimab_hosp_reduction_effs = []
         for i in range(n_sub):
-            params = tn_params_nirsevimab_hosp[i]
+            params = nirsevimab_hosp_reduction_params[i]
             if params is not None:
-                mu, sd = params
-                sampled = sample_truncated_normal(1, mu, sd, rng=DEFAULT_RNG)[0]
+                alpha, beta = params
+                sampled = DEFAULT_RNG.betavariate(alpha, beta)
                 rand_nirsevimab_hosp_reduction_effs.append(sampled)
             else:
-                # Keep original fixed mean (zero)
                 rand_nirsevimab_hosp_reduction_effs.append(nirsevimab_hosp_reduction_effs[i])
 
-        # MALRTI reduction effectiveness unchanged (Beta for first two, fixed third)
-        rand_nirsevimab_malrti_reduction_effs = [
-            DEFAULT_RNG.betavariate(25.486, 11.794),
-            DEFAULT_RNG.betavariate(25.486, 11.794),
-            nirsevimab_malrti_reduction_effs[2],
-        ]
+        # Nirsevimab effectiveness (maltri): beta where mean != 0, else fixed
+        rand_nirsevimab_malrti_reduction_effs = []
+        for i in range(n_sub):
+            params = nirsevimab_malrti_reduction_params[i]
+            if params is not None:
+                alpha, beta = params
+                sampled = DEFAULT_RNG.betavariate(alpha, beta)
+                rand_nirsevimab_malrti_reduction_effs.append(sampled)
+            else:
+                rand_nirsevimab_malrti_reduction_effs.append(nirsevimab_malrti_reduction_effs[i])
 
         # Coverage draw
         nirsevimab_coverage_draw = DEFAULT_RNG.betavariate(3.939, 0.525)
