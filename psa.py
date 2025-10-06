@@ -1,7 +1,5 @@
 """Probabilistic Sensitivity Analysis (PSA) for the health economic model."""
 
-import random
-
 import numpy as np
 import pandas as pd
 from betapert import pert
@@ -11,7 +9,6 @@ from stat_tools.fit_distributions import (
     fit_lognormal,
     fit_lognormal_briggs,
 )
-from stat_tools.sampling import sample_lognormal, sample_truncated_normal
 from util.constants import DAYS_IN_YEAR
 from util.core import calculate_salary_loss, run_scenario
 from util.data_enricher import enrich_agegroup_data, enrich_scalar_data
@@ -19,7 +16,6 @@ from util.data_loader import load_age_groups, load_agegroup_data, load_scalar_da
 
 N = 10_000
 
-DEFAULT_RNG = random.Random(42)
 NP_RNG = np.random.default_rng(42)
 
 
@@ -152,35 +148,29 @@ def main():
 
     for _ in range(N):
         # Draw DWs
-        moderate_case_dw = DEFAULT_RNG.betavariate(moderate_case_dw_alpha, moderate_case_dw_beta)
-        severe_case_dw = DEFAULT_RNG.betavariate(severe_case_dw_alpha, severe_case_dw_beta)
+        moderate_case_dw = NP_RNG.beta(moderate_case_dw_alpha, moderate_case_dw_beta)
+        severe_case_dw = NP_RNG.beta(severe_case_dw_alpha, severe_case_dw_beta)
 
         # Random draws per age group
         rand_hosp_proportions = [
-            sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
-            for (mu, sigma) in hosp_proportions_params
+            NP_RNG.lognormal(mu, sigma) for (mu, sigma) in hosp_proportions_params
         ]
         rand_outpatient_proportions = [
-            sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
-            for (mu, sigma) in outpatient_proportions_params
+            NP_RNG.lognormal(mu, sigma) for (mu, sigma) in outpatient_proportions_params
         ]
         rand_inpatient_costs = [
-            sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
-            for (mu, sigma) in inpatient_costs_params
+            NP_RNG.lognormal(mu, sigma) for (mu, sigma) in inpatient_costs_params
         ]
         rand_outpatient_pc_costs = [
-            sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
-            for (mu, sigma) in outpatient_pc_costs_params
+            NP_RNG.lognormal(mu, sigma) for (mu, sigma) in outpatient_pc_costs_params
         ]
         rand_outpatient_ec_costs = [
-            sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
-            for (mu, sigma) in outpatient_ec_costs_params
+            NP_RNG.lognormal(mu, sigma) for (mu, sigma) in outpatient_ec_costs_params
         ]
 
         # Caregiver salary loss calculations
         caregiver_daily_salary_draws = [
-            sample_lognormal(1, mu, sigma, rng=DEFAULT_RNG)[0]
-            for (mu, sigma) in caregiver_daily_salary_params
+            NP_RNG.lognormal(mu, sigma) for (mu, sigma) in caregiver_daily_salary_params
         ]
         rand_inpatient_caregiver_salary_losses = [
             calculate_salary_loss(
@@ -205,7 +195,7 @@ def main():
             params = nirsevimab_hosp_reduction_params[i]
             if params is not None:
                 alpha, beta = params
-                sampled = DEFAULT_RNG.betavariate(alpha, beta)
+                sampled = NP_RNG.beta(alpha, beta)
                 rand_nirsevimab_hosp_reduction_effs.append(sampled)
             else:
                 rand_nirsevimab_hosp_reduction_effs.append(nirsevimab_hosp_reduction_effs[i])
@@ -216,7 +206,7 @@ def main():
             params = nirsevimab_malrti_reduction_params[i]
             if params is not None:
                 alpha, beta = params
-                sampled = DEFAULT_RNG.betavariate(alpha, beta)
+                sampled = NP_RNG.beta(alpha, beta)
                 rand_nirsevimab_malrti_reduction_effs.append(sampled)
             else:
                 rand_nirsevimab_malrti_reduction_effs.append(nirsevimab_malrti_reduction_effs[i])
