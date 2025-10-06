@@ -1,23 +1,10 @@
 """Sampling helper utilities."""
 
-__all__ = ["sample_lognormal", "sample_truncated_normal"]
+__all__ = ["sample_truncated_normal"]
 
-import math
-import random
 from typing import List
 
 import numpy as np
-
-
-def sample_lognormal(
-    n: int,
-    mu: float,
-    sigma: float,
-    rng: random.Random | None = None,
-) -> List[float]:
-    """Generate n samples from a log-normal distribution with underlying normal(mu, sigma)."""
-    r = rng if rng is not None else random
-    return [math.exp(r.gauss(mu, sigma)) for _ in range(n)]
 
 
 def sample_truncated_normal(
