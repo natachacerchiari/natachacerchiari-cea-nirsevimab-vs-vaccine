@@ -1,0 +1,17 @@
+Nirsevimab effectiveness in MALRTI reduction 0–6 months: beta
+Nirsevimab effectiveness in Hospitalizations reduction: beta
+Nirsevimab coverage (%): beta PERT
+RSV Hospitalization proportion 0–3 months: log-normal
+RSV Hospitalization proportion 3–6 months: log-normal
+RSV Hospitalization proportion 6–12 months: log-normal
+RSV Outpatient proportion 0–3 months: log-normal
+RSV Outpatient proportion 3–6 months: log-normal
+RSV Outpatient proportion 6–12 months: log-normal
+DW moderate: beta
+DW severe: beta
+Inpatient cost 0–3 months: log-normal BRIGS
+Inpatient cost 3–6 months: log-normal BRIGS
+Inpatient cost 6–12 months: log-normal BRIGS
+Oupatient PC cost: log-normal BRIGS
+Outpatient EC cost: log-normal BRIGS
+Caregiver wages: log-normal BRIGS
