@@ -82,7 +82,7 @@ def _calculate_subgroup_dalys(
     DALY components:
       Severe hospitalized (cured) morbidity
       Moderate outpatient morbidity
-      Severe hospitalized (fatal) morbidity
+      Severe hospitalized (fatal) morbidity + mortality
       Years of Life Lost (discounted)
     """
     if days_in_year <= 0:
