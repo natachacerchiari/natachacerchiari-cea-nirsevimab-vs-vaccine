@@ -10,15 +10,15 @@ import seaborn as sns
 sns.set_theme(style="whitegrid")
 
 
-# Reference ICER values
-REF_ICER_PHS = 255269.26
-REF_ICER_SOC = 254054.75
-
 # Shared plot variables
 BAR_HEIGHT = 0.7
 
+# Read reference ICER values
+ref_icers = pd.read_csv("results/main/main.csv")
+ref_icer_phs = ref_icers["icer_phs"].iloc[0]
+ref_icer_soc = ref_icers["icer_soc"].iloc[0]
 
-# Read CSV file
+# Read results files
 df_phs = pd.read_csv(
     "results/univariate/univariate.csv",
     index_col=0,
@@ -33,7 +33,7 @@ df_soc = pd.read_csv(
 # Drop "caregiver_wages" index from df_phs
 df_phs = df_phs.drop(index="Caregiver wages (+25% and -25%)")
 empty_line = pd.DataFrame(
-    {"icer_phs_lo": [REF_ICER_PHS], "icer_phs_hi": [REF_ICER_PHS]}, index=[""]
+    {"icer_phs_lo": [ref_icer_phs], "icer_phs_hi": [ref_icer_phs]}, index=[""]
 )
 df_phs = pd.concat([df_phs, empty_line])
 
@@ -73,8 +73,8 @@ if not df_sorted_phs.empty:
     # Plot bars for low and high values
     ax1.barh(
         y_pos,
-        df_sorted_phs["icer_phs_hi"] - REF_ICER_PHS,
-        left=REF_ICER_PHS,
+        df_sorted_phs["icer_phs_hi"] - ref_icer_phs,
+        left=ref_icer_phs,
         height=BAR_HEIGHT,
         color="darkred",
         alpha=1,
@@ -82,8 +82,8 @@ if not df_sorted_phs.empty:
     )
     ax1.barh(
         y_pos,
-        df_sorted_phs["icer_phs_lo"] - REF_ICER_PHS,
-        left=REF_ICER_PHS,
+        df_sorted_phs["icer_phs_lo"] - ref_icer_phs,
+        left=ref_icer_phs,
         height=BAR_HEIGHT,
         color="darkblue",
         alpha=1,
@@ -92,11 +92,11 @@ if not df_sorted_phs.empty:
 
     # Add reference line
     ax1.axvline(
-        x=REF_ICER_PHS,
+        x=ref_icer_phs,
         color="dimgray",
         linestyle="--",
         linewidth=1,
-        label=f"Baseline ICER = {REF_ICER_PHS:,.0f} USD/DALY",
+        label=f"Baseline ICER = {ref_icer_phs:,.0f} USD/DALY",
     )
 
     # Customize plot
@@ -127,8 +127,8 @@ if not df_sorted_soc.empty:
     # Plot bars for low and high values
     ax2.barh(
         y_pos,
-        df_sorted_soc["icer_soc_hi"] - REF_ICER_SOC,
-        left=REF_ICER_SOC,
+        df_sorted_soc["icer_soc_hi"] - ref_icer_soc,
+        left=ref_icer_soc,
         height=BAR_HEIGHT,
         color="darkred",
         alpha=1,
@@ -136,8 +136,8 @@ if not df_sorted_soc.empty:
     )
     ax2.barh(
         y_pos,
-        df_sorted_soc["icer_soc_lo"] - REF_ICER_SOC,
-        left=REF_ICER_SOC,
+        df_sorted_soc["icer_soc_lo"] - ref_icer_soc,
+        left=ref_icer_soc,
         height=BAR_HEIGHT,
         color="darkblue",
         alpha=1,
@@ -146,11 +146,11 @@ if not df_sorted_soc.empty:
 
     # Add reference line
     ax2.axvline(
-        x=REF_ICER_SOC,
+        x=ref_icer_soc,
         color="dimgray",
         linestyle="--",
         linewidth=2,
-        label=f"ICER baseline = {REF_ICER_SOC:,.0f} USD/DALY",
+        label=f"ICER baseline = {ref_icer_soc:,.0f} USD/DALY",
     )
 
     # Customize plot

@@ -1,3 +1,5 @@
+import pandas as pd
+
 from util.constants import DAYS_IN_YEAR
 from util.core import run_scenario
 from util.data_enricher import enrich_agegroup_data, enrich_scalar_data
@@ -77,11 +79,11 @@ def main():
     print("Vaccine scenario:", vaccine_result)
     print("Nirsevimab scenario:", nirsevimab_result)
 
-    icer = (nirsevimab_result["cost"] - vaccine_result["cost"]) / (
+    icer_soc = (nirsevimab_result["cost"] - vaccine_result["cost"]) / (
         vaccine_result["dalys"] - nirsevimab_result["dalys"]
     )
 
-    print("ICER: ", icer)
+    print("ICER: ", icer_soc)
 
     # Perspective: public health system (direct costs only)
 
@@ -142,11 +144,14 @@ def main():
     print("Vaccine scenario:", vaccine_result)
     print("Nirsevimab scenario:", nirsevimab_result)
 
-    icer = (nirsevimab_result["cost"] - vaccine_result["cost"]) / (
+    icer_phs = (nirsevimab_result["cost"] - vaccine_result["cost"]) / (
         vaccine_result["dalys"] - nirsevimab_result["dalys"]
     )
 
-    print("ICER: ", icer)
+    print("ICER: ", icer_phs)
+
+    main_data = pd.DataFrame({"icer_soc": [icer_soc], "icer_phs": [icer_phs]})
+    main_data.to_csv("results/main/main.csv", index=False, encoding="utf-8", lineterminator="\n")
 
 
 if __name__ == "__main__":
