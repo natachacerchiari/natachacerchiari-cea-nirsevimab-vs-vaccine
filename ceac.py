@@ -30,3 +30,6 @@ for _, input_path, output_path in perspectives:
     # Save CEAC data to CSV
     ceac_data = pd.DataFrame({"threshold": thresholds, "probability": probabilities})
     ceac_data.to_csv(output_path, index=False, encoding="utf-8", lineterminator="\n")
+
+print(f"CEAC analysis completed.")
+print(f"Results saved to {perspectives[0][2]} and {perspectives[1][2]}")

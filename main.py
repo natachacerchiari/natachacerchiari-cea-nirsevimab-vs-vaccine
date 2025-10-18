@@ -150,8 +150,11 @@ def main():
 
     print("ICER: ", icer_phs)
 
+    output_path = "results/main/main.csv"
     main_data = pd.DataFrame({"icer_soc": [icer_soc], "icer_phs": [icer_phs]})
-    main_data.to_csv("results/main/main.csv", index=False, encoding="utf-8", lineterminator="\n")
+    main_data.to_csv(output_path, index=False, encoding="utf-8", lineterminator="\n")
+    print(f"\nMain analysis completed.")
+    print(f"Results saved to {output_path}")
 
 
 if __name__ == "__main__":

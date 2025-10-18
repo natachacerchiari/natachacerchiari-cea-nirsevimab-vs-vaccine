@@ -143,8 +143,8 @@ def main():
             )
             nirsevimab_malrti_reduction_params[i] = (alpha, beta)
 
-    societal_results = []
-    public_results = []
+    soc_results = []
+    phs_results = []
 
     for _ in range(N):
         # Draw DWs
@@ -325,7 +325,7 @@ def main():
             vaccine_malrti_reduction_effs,
         )
 
-        societal_results.append(
+        soc_results.append(
             {
                 "incremental-cost": result_societal_nirsevimab_dict["cost"]
                 - result_societal_vaccine_dict["cost"],
@@ -333,7 +333,7 @@ def main():
                 - result_societal_nirsevimab_dict["dalys"],
             }
         )
-        public_results.append(
+        phs_results.append(
             {
                 "incremental-cost": result_public_nirsevimab_dict["cost"]
                 - result_public_vaccine_dict["cost"],
@@ -342,13 +342,16 @@ def main():
             }
         )
 
-    print("Iterations:", N)
-    pd.DataFrame(public_results).to_csv(
-        "results/psa/psa_public.csv", index=False, encoding="utf-8", lineterminator="\n"
+    phs_output_path = "results/psa/psa_phs.csv"
+    soc_output_path = "results/psa/psa_soc.csv"
+    pd.DataFrame(phs_results).to_csv(
+        phs_output_path, index=False, encoding="utf-8", lineterminator="\n"
     )
-    pd.DataFrame(societal_results).to_csv(
-        "results/psa/psa_societal.csv", index=False, encoding="utf-8", lineterminator="\n"
+    pd.DataFrame(soc_results).to_csv(
+        soc_output_path, index=False, encoding="utf-8", lineterminator="\n"
     )
+    print(f"PSA completed in {N} iterations.")
+    print(f"Results saved to {phs_output_path} and {soc_output_path}")
 
 
 if __name__ == "__main__":

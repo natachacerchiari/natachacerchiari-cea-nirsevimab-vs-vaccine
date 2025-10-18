@@ -516,9 +516,7 @@ def run_univariate(
 def main():
     univariate_results = []
 
-    univariate_results.append(
-        run_univariate("n_coverage", n_coverage=[0.5, 0.95])
-    )
+    univariate_results.append(run_univariate("n_coverage", n_coverage=[0.5, 0.95]))
     univariate_results.append(
         run_univariate(
             "rsv_incidence",
@@ -551,9 +549,12 @@ def main():
         )
     )
 
+    output_path = "results/univariate/univariate.csv"
     pd.DataFrame(univariate_results).to_csv(
-        "results/univariate/univariate.csv", index=False, encoding="utf-8", lineterminator="\n"
+        output_path, index=False, encoding="utf-8", lineterminator="\n"
     )
+    print(f"Univariate analysis completed.")
+    print(f"Results saved to {output_path}")
 
 
 if __name__ == "__main__":
