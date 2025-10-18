@@ -30,23 +30,14 @@ if len(df1.columns) >= 2:
         [WTP * x_min, WTP * x_max],
         color="dimgray",
         linestyle="--",
-        label=f"WTP = {WTP:,.0f} USD/DALY",
-    )
-    ax1.text(
-        x_max,
-        WTP * x_max * 0.5,
-        "USD per DALY averted",
-        ha="right",
-        va="top",
-        color="dimgray",
-        fontsize=9,
+        label=f"Cost-Effectiveness Threshold = {WTP:,.0f} USD/DALY",
     )
     ax1.set_title("Health System Perspective")
     ax1.set_xlabel("Incremental DALYs Averted")
     ax1.set_ylabel("Incremental Cost")
     ax1.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
     ax1.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
-    ax1.legend()
+    ax1.legend(loc="lower right", bbox_to_anchor=(1, -0.01))
 else:
     print("First CSV doesn't have enough columns for scatter plot")
 
@@ -61,23 +52,16 @@ if len(df2.columns) >= 2:
         [WTP * x_min, WTP * x_max],
         color="dimgray",
         linestyle="--",
-        label=f"WTP = {WTP:,.0f} USD/DALY",
+        label=f"Cost-Effectiveness Threshold = {WTP:,.0f} USD/DALY",
     )
-    ax2.text(
-        x_max,
-        WTP * x_max * 0.5,
-        "USD per DALY averted",
-        ha="right",
-        va="top",
-        color="dimgray",
-        fontsize=9,
-    )
+
     ax2.set_title("Societal Perspective")
     ax2.set_xlabel("Incremental DALYs Averted")
     ax2.set_ylabel("Incremental Cost")
     ax2.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
     ax2.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
-    ax2.legend()
+    ax2.legend(loc="lower right", bbox_to_anchor=(1, -0.01))
+
 else:
     print("Second CSV doesn't have enough columns for scatter plot")
 

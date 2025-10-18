@@ -28,9 +28,14 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 # First plot (public / health system perspective)
 if {"threshold", "probability"}.issubset(df_public.columns):
     sns.lineplot(data=df_public, x="threshold", y="probability", ax=ax1, color="steelblue")
-    ax1.axvline(WTP, color="dimgray", linestyle="--", label=f"WTP = {WTP:,.0f} USD/DALY")
+    ax1.axvline(
+        WTP,
+        color="dimgray",
+        linestyle="--",
+        label=f"Cost-Effectiveness Threshold = {WTP:,.0f} USD/DALY",
+    )
     ax1.set_title("Health System Perspective")
-    ax1.set_xlabel("Willingness To Pay (USD per DALY averted)")
+    ax1.set_xlabel("Cost-Effectiveness Threshold (USD per DALY averted)")
     ax1.set_ylabel("Probability Cost-Effective")
     ax1.set_ylim(0, 1)
     ax1.yaxis.set_major_locator(plt.MaxNLocator(6))
@@ -42,11 +47,16 @@ else:
 
 # Second plot (societal perspective)
 if {"threshold", "probability"}.issubset(df_societal.columns):
-    sns.lineplot(data=df_societal, x="threshold", y="probability", ax=ax2, color="seagreen")
-    # WTP vertical line
-    ax2.axvline(WTP, color="dimgray", linestyle="--", label=f"WTP = {WTP:,.0f} USD/DALY")
+    sns.lineplot(data=df_societal, x="threshold", y="probability", ax=ax2, color="steelblue")
+    # Cost-Effectiveness Threshold vertical line
+    ax2.axvline(
+        WTP,
+        color="dimgray",
+        linestyle="--",
+        label=f"Cost-Effectiveness Threshold = {WTP:,.0f} USD/DALY",
+    )
     ax2.set_title("Societal Perspective")
-    ax2.set_xlabel("Willingness To Pay (USD per DALY averted)")
+    ax2.set_xlabel("Cost-Effectiveness Threshold (USD per DALY averted)")
     ax2.set_ylabel("Probability Cost-Effective")
     ax2.set_ylim(0, 1)
     ax2.yaxis.set_major_locator(plt.MaxNLocator(6))
