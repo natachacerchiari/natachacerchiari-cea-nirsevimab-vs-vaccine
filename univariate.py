@@ -517,35 +517,35 @@ def main():
     univariate_results = []
 
     univariate_results.append(
-        run_univariate("Nirsevimab coverage (50% and 95%)", n_coverage=[0.5, 0.95])
+        run_univariate("n_coverage", n_coverage=[0.5, 0.95])
     )
     univariate_results.append(
         run_univariate(
-            "Incidence RSV-GB-LRTI-2019 (upper CI – lower CI)",
+            "rsv_incidence",
             hosp_proportions=[[0.0128, 0.0118, 0.0075], [0.0545, 0.0360, 0.0167]],
             outpatient_proportions=[[0.0431, 0.0170, 0.0320], [0.2096, 0.2556, 0.1634]],
         )
     )
     univariate_results.append(
         run_univariate(
-            "Inpatient cost (+25% and -25%)",
+            "inpatient_cost",
             inpatient_costs_factors=[0.75, 1.25],
             outpatient_ec_costs_factors=[0.75, 1.25],
         )
     )
     univariate_results.append(
-        run_univariate("Outpatient cost (+25% and -25%)", outpatient_pc_costs_factors=[0.75, 1.25])
+        run_univariate("outpatient_cost", outpatient_pc_costs_factors=[0.75, 1.25])
     )
     univariate_results.append(
         run_univariate(
-            "Caregiver wages (+25% and -25%)",
+            "caregiver_salary",
             inpatient_caregiver_salary_losses_factors=[0.75, 1.25],
             outpatient_caregiver_salary_losses_factors=[0.75, 1.25],
         )
     )
     univariate_results.append(
         run_univariate(
-            "Nirsevimab effectiveness (upper CI – lower CI)",
+            "n_effectiveness",
             n_hosp_reduction_effs=[[0.72, 0.72, 0.0], [0.79, 0.79, 0.0]],
             n_malrti_reduction_effs=[[0.52, 0.52, 0.0], [0.81, 0.81, 0.0]],
         )
