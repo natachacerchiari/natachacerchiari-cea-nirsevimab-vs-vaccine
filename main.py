@@ -1,7 +1,7 @@
-from util.core import run_scenario
 from util.constants import DAYS_IN_YEAR
-from util.data_loader import load_age_groups, load_scalar_data, load_agegroup_data
-from util.data_enricher import enrich_scalar_data, enrich_agegroup_data
+from util.core import run_scenario
+from util.data_enricher import enrich_agegroup_data, enrich_scalar_data
+from util.data_loader import load_age_groups, load_agegroup_data, load_scalar_data
 
 
 def main():
@@ -105,9 +105,9 @@ def main():
         inpatient_pcr_costs=agegroup_data["inpatient_pcr_cost"].to_list(),
         outpatient_ec_costs=agegroup_data["outpatient_ec_cost"].to_list(),
         outpatient_pc_costs=agegroup_data["outpatient_pc_cost"].to_list(),
-        inpatient_transport_costs=agegroup_data["inpatient_transport_cost"].to_list(),
+        inpatient_transport_costs=[0.0] * len(age_groups),
         inpatient_caregiver_salary_losses=[0.0] * len(age_groups),
-        outpatient_transport_costs=agegroup_data["outpatient_transport_cost"].to_list(),
+        outpatient_transport_costs=[0.0] * len(age_groups),
         outpatient_caregiver_salary_losses=[0.0] * len(age_groups),
         hosp_reduction_effs=agegroup_data["nirsevimab_hosp_reduction_eff"].to_list(),
         malrti_reduction_effs=agegroup_data["nirsevimab_malrti_reduction_eff"].to_list(),
@@ -131,9 +131,9 @@ def main():
         inpatient_pcr_costs=agegroup_data["inpatient_pcr_cost"].to_list(),
         outpatient_ec_costs=agegroup_data["outpatient_ec_cost"].to_list(),
         outpatient_pc_costs=agegroup_data["outpatient_pc_cost"].to_list(),
-        inpatient_transport_costs=agegroup_data["inpatient_transport_cost"].to_list(),
+        inpatient_transport_costs=[0.0] * len(age_groups),
         inpatient_caregiver_salary_losses=[0.0] * len(age_groups),
-        outpatient_transport_costs=agegroup_data["outpatient_transport_cost"].to_list(),
+        outpatient_transport_costs=[0.0] * len(age_groups),
         outpatient_caregiver_salary_losses=[0.0] * len(age_groups),
         hosp_reduction_effs=agegroup_data["vaccine_hosp_reduction_eff"].to_list(),
         malrti_reduction_effs=agegroup_data["vaccine_malrti_reduction_eff"].to_list(),
