@@ -8,7 +8,7 @@ import matplotlib.ticker as ticker
 import pandas as pd
 import seaborn as sns
 
-from util.constants import WTP
+from util.constants import CET
 
 sns.set_theme(style="whitegrid")
 
@@ -27,10 +27,10 @@ if len(df1.columns) >= 2:
     x_min, x_max = df1[x_col].min(), df1[x_col].max()
     ax1.plot(
         [x_min, x_max],
-        [WTP * x_min, WTP * x_max],
+        [CET * x_min, CET * x_max],
         color="dimgray",
         linestyle="--",
-        label=f"Cost-Effectiveness Threshold = {WTP:,.0f} USD/DALY",
+        label=f"Cost-Effectiveness Threshold = {CET:,.0f} USD/DALY",
     )
     ax1.set_title("Health System Perspective")
     ax1.set_xlabel("Incremental DALYs Averted")
@@ -49,10 +49,10 @@ if len(df2.columns) >= 2:
     x_min, x_max = df2[x_col].min(), df2[x_col].max()
     ax2.plot(
         [x_min, x_max],
-        [WTP * x_min, WTP * x_max],
+        [CET * x_min, CET * x_max],
         color="dimgray",
         linestyle="--",
-        label=f"Cost-Effectiveness Threshold = {WTP:,.0f} USD/DALY",
+        label=f"Cost-Effectiveness Threshold = {CET:,.0f} USD/DALY",
     )
 
     ax2.set_title("Societal Perspective")

@@ -10,7 +10,7 @@ import matplotlib.ticker as ticker
 import pandas as pd
 import seaborn as sns
 
-from util.constants import WTP
+from util.constants import CET
 
 sns.set_theme(style="whitegrid")
 
@@ -29,10 +29,10 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 if {"threshold", "probability"}.issubset(df_public.columns):
     sns.lineplot(data=df_public, x="threshold", y="probability", ax=ax1, color="steelblue")
     ax1.axvline(
-        WTP,
+        CET,
         color="dimgray",
         linestyle="--",
-        label=f"Cost-Effectiveness Threshold = {WTP:,.0f} USD/DALY",
+        label=f"Cost-Effectiveness Threshold = {CET:,.0f} USD/DALY",
     )
     ax1.set_title("Health System Perspective")
     ax1.set_xlabel("Cost-Effectiveness Threshold (USD per DALY averted)")
@@ -50,10 +50,10 @@ if {"threshold", "probability"}.issubset(df_societal.columns):
     sns.lineplot(data=df_societal, x="threshold", y="probability", ax=ax2, color="steelblue")
     # Cost-Effectiveness Threshold vertical line
     ax2.axvline(
-        WTP,
+        CET,
         color="dimgray",
         linestyle="--",
-        label=f"Cost-Effectiveness Threshold = {WTP:,.0f} USD/DALY",
+        label=f"Cost-Effectiveness Threshold = {CET:,.0f} USD/DALY",
     )
     ax2.set_title("Societal Perspective")
     ax2.set_xlabel("Cost-Effectiveness Threshold (USD per DALY averted)")
