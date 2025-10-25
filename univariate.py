@@ -1,3 +1,5 @@
+from typing import Dict, List, Optional, Union
+
 import pandas as pd
 
 from util.constants import DAYS_IN_YEAR
@@ -7,18 +9,22 @@ from util.data_loader import load_age_groups, load_agegroup_data, load_scalar_da
 
 
 def run_univariate(
-    param_name,
-    n_coverage=None,
-    hosp_proportions=None,
-    outpatient_proportions=None,
-    inpatient_costs_factors=None,
-    outpatient_ec_costs_factors=None,
-    outpatient_pc_costs_factors=None,
-    inpatient_caregiver_salary_losses_factors=None,
-    outpatient_caregiver_salary_losses_factors=None,
-    n_hosp_reduction_effs=None,
-    n_malrti_reduction_effs=None,
-):
+    param_name: str,
+    n_coverage: Optional[List[float]] = None,
+    hosp_proportions: Optional[List[List[float]]] = None,
+    outpatient_proportions: Optional[List[List[float]]] = None,
+    inpatient_costs_factors: Optional[List[float]] = None,
+    outpatient_ec_costs_factors: Optional[List[float]] = None,
+    outpatient_pc_costs_factors: Optional[List[float]] = None,
+    inpatient_caregiver_salary_losses_factors: Optional[List[float]] = None,
+    outpatient_caregiver_salary_losses_factors: Optional[List[float]] = None,
+    n_hosp_reduction_effs: Optional[List[List[float]]] = None,
+    n_malrti_reduction_effs: Optional[List[List[float]]] = None,
+) -> Dict[str, Union[str, float]]:
+    """
+    Calculate ICER for univariate sensitivity analysis under two perspectives:
+    public health system and societal.
+    """
     age_groups = load_age_groups()
     scalar_data = enrich_scalar_data(load_scalar_data())
     agegroup_data = enrich_agegroup_data(load_agegroup_data(), scalar_data)

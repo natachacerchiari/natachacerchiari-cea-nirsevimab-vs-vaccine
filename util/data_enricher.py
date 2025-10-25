@@ -2,7 +2,7 @@
 
 __all__ = ["enrich_scalar_data", "enrich_agegroup_data"]
 
-import pandas as pd
+from pandas import DataFrame
 
 from util.core import (
     calculate_discounted_yll,
@@ -13,7 +13,7 @@ from util.core import (
 )
 
 
-def enrich_scalar_data(scalar_data: pd.DataFrame) -> pd.DataFrame:
+def enrich_scalar_data(scalar_data: DataFrame) -> DataFrame:
     """
     Enrich the scalar data by adding:
       - discounted_yll
@@ -63,7 +63,7 @@ def enrich_scalar_data(scalar_data: pd.DataFrame) -> pd.DataFrame:
     return scalar_data
 
 
-def enrich_agegroup_data(agegroup_data: pd.DataFrame, scalar_data: pd.DataFrame) -> pd.DataFrame:
+def enrich_agegroup_data(agegroup_data: DataFrame, scalar_data: DataFrame) -> DataFrame:
     """
     Enrich age group data by adding:
         - inpatient_transport_cost
