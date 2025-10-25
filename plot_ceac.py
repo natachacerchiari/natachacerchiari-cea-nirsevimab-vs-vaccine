@@ -8,11 +8,11 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import pandas as pd
-import seaborn as sns
+import seaborn as sb
 
 from util.constants import CET
 
-sns.set_theme(style="whitegrid")
+sb.set_theme(style="whitegrid")
 
 # Read CEAC CSV files
 df_public = pd.read_csv("results/ceac/ceac_public.csv")
@@ -27,7 +27,7 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 
 # First plot (public / health system perspective)
 if {"threshold", "probability"}.issubset(df_public.columns):
-    sns.lineplot(data=df_public, x="threshold", y="probability", ax=ax1, color="steelblue")
+    sb.lineplot(data=df_public, x="threshold", y="probability", ax=ax1, color="steelblue")
     ax1.axvline(
         CET,
         color="dimgray",
@@ -47,7 +47,7 @@ else:
 
 # Second plot (societal perspective)
 if {"threshold", "probability"}.issubset(df_societal.columns):
-    sns.lineplot(data=df_societal, x="threshold", y="probability", ax=ax2, color="steelblue")
+    sb.lineplot(data=df_societal, x="threshold", y="probability", ax=ax2, color="steelblue")
     # Cost-Effectiveness Threshold vertical line
     ax2.axvline(
         CET,

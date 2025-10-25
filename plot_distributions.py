@@ -4,7 +4,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
+import seaborn as sb
 from betapert import pert
 
 from stat_tools.fit_distributions import (
@@ -33,7 +33,7 @@ NP_RNG = np.random.default_rng(42)
 def _save_hist(data: list[float], title: str, filename: str) -> None:
     """Save a histogram plot."""
     plt.figure(figsize=(6, 4))
-    sns.histplot(data, bins=30, kde=True, color="steelblue")
+    sb.histplot(data, bins=30, kde=True, color="steelblue")
     plt.title(title)
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / filename)
@@ -57,7 +57,7 @@ def _save_comparative_hists(samples: list[tuple[list[float], str, str]]) -> None
     y_max = max_count * 1.10
     for data, title, filename in samples:
         plt.figure(figsize=(6, 4))
-        sns.histplot(data, bins=bins, kde=True, color="steelblue")
+        sb.histplot(data, bins=bins, kde=True, color="steelblue")
         plt.xlim(x_min, x_max)
         plt.ylim(0, y_max)
         plt.title(f"{title}")

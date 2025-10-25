@@ -5,9 +5,9 @@ Generates tornado plots for univariate sensitivity analysis results from CSV fil
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
+import seaborn as sb
 
-sns.set_theme(style="whitegrid")
+sb.set_theme(style="whitegrid")
 
 
 # Shared plot variables
@@ -56,7 +56,7 @@ df_sorted_phs = df_phs.sort_values("total_bar_length_phs", ascending=True)
 df_sorted_soc = df_soc.sort_values("total_bar_length_soc", ascending=True)
 
 # Customize grid
-sns.set_theme(
+sb.set_theme(
     style="whitegrid",
     rc={"grid.color": "0.8", "grid.linestyle": "-", "grid.linewidth": 0.5, "grid.alpha": 0.4},
 )

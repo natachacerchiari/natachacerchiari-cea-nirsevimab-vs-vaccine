@@ -6,11 +6,11 @@ DALYs averted vs. incremental costs with a WTP threshold line.
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import pandas as pd
-import seaborn as sns
+import seaborn as sb
 
 from util.constants import CET
 
-sns.set_theme(style="whitegrid")
+sb.set_theme(style="whitegrid")
 
 # Read CSV files
 df1 = pd.read_csv("results/psa/psa_public.csv")
@@ -23,7 +23,7 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
 if len(df1.columns) >= 2:
     x_col = df1.columns[1]
     y_col = df1.columns[0]
-    sns.scatterplot(data=df1, x=x_col, y=y_col, ax=ax1)
+    sb.scatterplot(data=df1, x=x_col, y=y_col, ax=ax1)
     x_min, x_max = df1[x_col].min(), df1[x_col].max()
     ax1.plot(
         [x_min, x_max],
@@ -45,7 +45,7 @@ else:
 if len(df2.columns) >= 2:
     x_col = df2.columns[1]
     y_col = df2.columns[0]
-    sns.scatterplot(data=df2, x=x_col, y=y_col, ax=ax2)
+    sb.scatterplot(data=df2, x=x_col, y=y_col, ax=ax2)
     x_min, x_max = df2[x_col].min(), df2[x_col].max()
     ax2.plot(
         [x_min, x_max],
