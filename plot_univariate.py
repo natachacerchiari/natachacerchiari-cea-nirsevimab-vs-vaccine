@@ -32,7 +32,8 @@ df_soc = pd.read_csv(
 
 # Map parameter names to descriptive labels
 param_labels = {
-    "n_coverage": "Nirsevimab coverage (50% and 95%)",
+    "n_coverage": "Nirsevimab coverage (88.26%)*",
+    "both_coverages": "Nirsevimab coverage (75% and 95%) and Vaccine coverage (75% and 95%)",
     "rsv_incidence": "RSV Incidence – GB-LRTI-2019 (upper CI and lower CI)",
     "inpatient_cost": "Inpatient cost (+25% and -25%)",
     "outpatient_cost": "Outpatient cost (+25% and -25%)",
@@ -42,12 +43,9 @@ param_labels = {
 df_phs["label"] = df_phs.index.map(lambda k: param_labels.get(k, k))
 df_soc["label"] = df_soc.index.map(lambda k: param_labels.get(k, k))
 
-# Drop "caregiver_salary" index from df_phs
+# Drop "caregiver_salary" row from df_phs
 df_phs = df_phs.drop(index="caregiver_salary")
-empty_line = pd.DataFrame(
-    {"icer_phs_lo": [ref_icer_phs], "icer_phs_hi": [ref_icer_phs]}, index=[""]
-)
-df_phs = pd.concat([df_phs, empty_line])
+df_phs.loc["extra_row"] = {"label": "", "icer_phs_lo": ref_icer_phs, "icer_phs_hi": ref_icer_phs}
 
 # Sort data in descending order by total bar length
 df_phs["total_bar_length_phs"] = abs(df_phs["icer_phs_hi"] - df_phs["icer_phs_lo"])

@@ -11,6 +11,7 @@ from util.data_loader import load_age_groups, load_agegroup_data, load_scalar_da
 def run_univariate(
     param_name: str,
     n_coverage: Optional[List[float]] = None,
+    v_coverage: Optional[List[float]] = None,
     hosp_proportions: Optional[List[List[float]]] = None,
     outpatient_proportions: Optional[List[List[float]]] = None,
     inpatient_costs_factors: Optional[List[float]] = None,
@@ -102,7 +103,7 @@ def run_univariate(
 
     vaccine_result = run_scenario(
         cohort=scalar_data["cohort"],
-        coverage=scalar_data["vaccine_coverage"],
+        coverage=v_coverage[0] if v_coverage is not None else scalar_data["vaccine_coverage"],
         intervention_dose_cost=scalar_data["vaccine_dose_cost"],
         severe_case_dw=scalar_data["severe_case_dw"],
         moderate_case_dw=scalar_data["moderate_case_dw"],
@@ -236,7 +237,7 @@ def run_univariate(
 
     vaccine_result = run_scenario(
         cohort=scalar_data["cohort"],
-        coverage=scalar_data["vaccine_coverage"],
+        coverage=v_coverage[1] if v_coverage is not None else scalar_data["vaccine_coverage"],
         intervention_dose_cost=scalar_data["vaccine_dose_cost"],
         severe_case_dw=scalar_data["severe_case_dw"],
         moderate_case_dw=scalar_data["moderate_case_dw"],
@@ -356,7 +357,7 @@ def run_univariate(
 
     vaccine_result = run_scenario(
         cohort=scalar_data["cohort"],
-        coverage=scalar_data["vaccine_coverage"],
+        coverage=v_coverage[0] if v_coverage is not None else scalar_data["vaccine_coverage"],
         intervention_dose_cost=scalar_data["vaccine_dose_cost"],
         severe_case_dw=scalar_data["severe_case_dw"],
         moderate_case_dw=scalar_data["moderate_case_dw"],
@@ -462,7 +463,7 @@ def run_univariate(
 
     vaccine_result = run_scenario(
         cohort=scalar_data["cohort"],
-        coverage=scalar_data["vaccine_coverage"],
+        coverage=v_coverage[1] if v_coverage is not None else scalar_data["vaccine_coverage"],
         intervention_dose_cost=scalar_data["vaccine_dose_cost"],
         severe_case_dw=scalar_data["severe_case_dw"],
         moderate_case_dw=scalar_data["moderate_case_dw"],
@@ -522,7 +523,10 @@ def run_univariate(
 def main():
     univariate_results = []
 
-    univariate_results.append(run_univariate("n_coverage", n_coverage=[0.5, 0.95]))
+    univariate_results.append(run_univariate("n_coverage", n_coverage=[0.5, 0.8826]))
+    univariate_results.append(
+        run_univariate("both_coverages", n_coverage=[0.75, 0.95], v_coverage=[0.75, 0.95])
+    )
     univariate_results.append(
         run_univariate(
             "rsv_incidence",
