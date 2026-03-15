@@ -342,8 +342,8 @@ def main():
             }
         )
 
-    phs_output_path = "results/psa/psa_phs.csv"
-    soc_output_path = "results/psa/psa_soc.csv"
+    phs_output_path = "results/psa/psa_public.csv"
+    soc_output_path = "results/psa/psa_societal.csv"
     pd.DataFrame(phs_results).to_csv(
         phs_output_path, index=False, encoding="utf-8", lineterminator="\n"
     )
