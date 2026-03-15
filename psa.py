@@ -29,10 +29,12 @@ def main():
 
     # Extract scalar values
     cohort = scalar_data["cohort"]
-    nirsevimab_coverage = scalar_data["nirsevimab_coverage"]
+    nirsevimab_coverage_mode = scalar_data["nirsevimab_coverage_mode"]
     nirsevimab_min_expected_coverage = scalar_data["nirsevimab_min_expected_coverage"]
     nirsevimab_max_expected_coverage = scalar_data["nirsevimab_max_expected_coverage"]
-    vaccine_coverage = scalar_data["vaccine_coverage"]
+    vaccine_coverage_mode = scalar_data["vaccine_coverage_mode"]
+    vaccine_min_expected_coverage = scalar_data["vaccine_min_expected_coverage"]
+    vaccine_max_expected_coverage = scalar_data["vaccine_max_expected_coverage"]
     nirsevimab_dose_cost = scalar_data["nirsevimab_dose_cost"]
     vaccine_dose_cost = scalar_data["vaccine_dose_cost"]
     severe_case_dw = scalar_data["severe_case_dw"]
@@ -213,9 +215,17 @@ def main():
 
         # Nirsevimab coverage
         rand_nirsevimab_coverage = pert.rvs(
+            mode=nirsevimab_coverage_mode,
             mini=nirsevimab_min_expected_coverage,
-            mode=nirsevimab_coverage,
             maxi=nirsevimab_max_expected_coverage,
+            random_state=NP_RNG,
+        )
+
+        # Vaccine coverage
+        rand_vaccine_coverage = pert.rvs(
+            mode=vaccine_coverage_mode,
+            mini=vaccine_min_expected_coverage,
+            maxi=vaccine_max_expected_coverage,
             random_state=NP_RNG,
         )
 
@@ -248,7 +258,7 @@ def main():
         )
         result_societal_vaccine_dict = run_scenario(
             cohort,
-            vaccine_coverage,
+            rand_vaccine_coverage,
             vaccine_dose_cost,
             severe_case_dw,
             moderate_case_dw,
@@ -301,7 +311,7 @@ def main():
         )
         result_public_vaccine_dict = run_scenario(
             cohort,
-            vaccine_coverage,
+            rand_vaccine_coverage,
             vaccine_dose_cost,
             severe_case_dw,
             moderate_case_dw,

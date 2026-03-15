@@ -1,2 +1,2 @@
-vaccine_coverage;vaccine_min_expected_coverage;vaccine_max_expected_coverage;vaccine_unit_cost;vaccine_administration_cost;vaccine_wastage_rate
-0.50;0.50;0.95;39.08;2.59;0.05
+vaccine_coverage;vaccine_coverage_mode;vaccine_min_expected_coverage;vaccine_max_expected_coverage;vaccine_unit_cost;vaccine_administration_cost;vaccine_wastage_rate
+0.50;0.50;0.40;0.99;39.08;2.59;0.05

@@ -183,15 +183,22 @@ for sg in agegroup_data_df.index:
         )
 
 # Nirsevimab coverage (PERT)
+mode = float(scalar_row["nirsevimab_coverage_mode"])
 mini = float(scalar_row["nirsevimab_min_expected_coverage"])
-mode = float(scalar_row["nirsevimab_coverage"])
 maxi = float(scalar_row["nirsevimab_max_expected_coverage"])
-nirsevimab_coverage_samples = [
-    pert.rvs(mini=mini, mode=mode, maxi=maxi, random_state=NP_RNG) for _ in range(N)
+vaccine_coverage_samples = [
+    pert.rvs(mode=mode, mini=mini, maxi=maxi, random_state=NP_RNG) for _ in range(N)
 ]
-_save_hist(
-    nirsevimab_coverage_samples, "nirsevimab_coverage (PERT)", "nirsevimab_coverage_pert.png"
-)
+_save_hist(vaccine_coverage_samples, "nirsevimab_coverage (PERT)", "nirsevimab_coverage_pert.png")
+
+# Vaccine coverage (PERT)
+mode = float(scalar_row["vaccine_coverage_mode"])
+mini = float(scalar_row["vaccine_min_expected_coverage"])
+maxi = float(scalar_row["vaccine_max_expected_coverage"])
+vaccine_coverage_samples = [
+    pert.rvs(mode=mode, mini=mini, maxi=maxi, random_state=NP_RNG) for _ in range(N)
+]
+_save_hist(vaccine_coverage_samples, "vaccine_coverage (PERT)", "vaccine_coverage_pert.png")
 
 # Direct medical costs (inpatient per subgroup; outpatient single)
 variation = 0.25
