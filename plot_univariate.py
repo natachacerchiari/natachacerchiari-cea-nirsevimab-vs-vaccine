@@ -124,7 +124,6 @@ if not df_sorted_phs.empty:
     # Adjust layout and save the first plot
     plt.tight_layout()
     plt.savefig("img/univariate/univariate_tornado_phs.png", dpi=300, bbox_inches="tight")
-    plt.show()
 
 
 # Societal perspective tornado plot
@@ -178,4 +177,3 @@ if not df_sorted_soc.empty:
     # Adjust layout and save the second plot
     plt.tight_layout()
     plt.savefig("img/univariate/univariate_tornado_soc.png", dpi=300, bbox_inches="tight")
-    plt.show()
