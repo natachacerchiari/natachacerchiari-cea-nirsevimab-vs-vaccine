@@ -10,7 +10,7 @@ from stat_tools.fit_distributions import (
     fit_lognormal_briggs,
 )
 from util.constants import DAYS_IN_YEAR
-from util.core import calculate_salary_loss, run_scenario
+from util.core import calculate_dose_cost, calculate_salary_loss, run_scenario
 from util.data_enricher import enrich_agegroup_data, enrich_scalar_data
 from util.data_loader import load_age_groups, load_agegroup_data, load_scalar_data
 
@@ -35,10 +35,10 @@ def main():
     vaccine_coverage_mode = scalar_data["vaccine_coverage_mode"]
     vaccine_min_expected_coverage = scalar_data["vaccine_min_expected_coverage"]
     vaccine_max_expected_coverage = scalar_data["vaccine_max_expected_coverage"]
-    nirsevimab_dose_cost = scalar_data["nirsevimab_dose_cost"]
+    rand_nirsevimab_unit_cost = scalar_data["nirsevimab_unit_cost"]
+    nirsevimab_wastage_pct = scalar_data["nirsevimab_wastage_rate"]
+    nirsevimab_administration_cost = scalar_data["nirsevimab_administration_cost"]
     vaccine_dose_cost = scalar_data["vaccine_dose_cost"]
-    severe_case_dw = scalar_data["severe_case_dw"]
-    moderate_case_dw = scalar_data["moderate_case_dw"]
     severe_illness_duration_days = scalar_data["severe_illness_duration_days"]
     moderate_illness_duration_days = scalar_data["moderate_illness_duration_days"]
     discounted_yll = scalar_data["discounted_yll"]
@@ -83,6 +83,12 @@ def main():
     affected_caregivers_proportions = agegroup_data["affected_caregivers_proportion"].to_list()
     caregiver_daily_salaries = agegroup_data["caregiver_daily_salary"].to_list()
 
+    # Fit lognormal (Briggs) parameters for nirsevimab unit cost (25% variation)
+    nirsevimab_unit_cost_mu, nirsevimab_unit_cost_sigma = fit_lognormal_briggs(rand_nirsevimab_unit_cost, 0.25)
+
+    # Fit lognormal (Briggs) parameters for patient costs (25% variation)
+    inpatient_costs_params = [fit_lognormal_briggs(c, 0.25) for c in inpatient_costs]
+
     # Fit beta parameters for DWs
     moderate_case_dw_alpha, moderate_case_dw_beta = fit_beta(
         moderate_case_dw,
@@ -113,7 +119,7 @@ def main():
         for i in range(n_sub)
     ]
 
-    # Fit lognormal (Briggs) parameters for costs (25% variation)
+    # Fit lognormal (Briggs) parameters for patient costs (25% variation)
     inpatient_costs_params = [fit_lognormal_briggs(c, 0.25) for c in inpatient_costs]
     outpatient_pc_costs_params = [fit_lognormal_briggs(c, 0.25) for c in outpatient_pc_costs]
     outpatient_ec_costs_params = [fit_lognormal_briggs(c, 0.25) for c in outpatient_ec_costs]
@@ -149,6 +155,14 @@ def main():
     phs_results = []
 
     for _ in range(N):
+        # Nirsevimab dose cost calculations
+        rand_nirsevimab_unit_cost = NP_RNG.lognormal(nirsevimab_unit_cost_mu, nirsevimab_unit_cost_sigma)
+        rand_nirsevimab_dose_cost = calculate_dose_cost(
+            unit_cost=rand_nirsevimab_unit_cost,
+            wastage_pct=nirsevimab_wastage_pct,
+            administration_cost=nirsevimab_administration_cost
+        )
+
         # Draw DWs
         moderate_case_dw = NP_RNG.beta(moderate_case_dw_alpha, moderate_case_dw_beta)
         severe_case_dw = NP_RNG.beta(severe_case_dw_alpha, severe_case_dw_beta)
@@ -234,7 +248,7 @@ def main():
         result_societal_nirsevimab_dict = run_scenario(
             cohort,
             rand_nirsevimab_coverage,
-            nirsevimab_dose_cost,
+            rand_nirsevimab_dose_cost,
             severe_case_dw,
             moderate_case_dw,
             severe_illness_duration_days,
@@ -287,7 +301,7 @@ def main():
         result_public_nirsevimab_dict = run_scenario(
             cohort,
             rand_nirsevimab_coverage,
-            nirsevimab_dose_cost,
+            rand_nirsevimab_dose_cost,
             severe_case_dw,
             moderate_case_dw,
             severe_illness_duration_days,

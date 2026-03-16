@@ -18,7 +18,7 @@ def main():
 
         # Generate CEAC data
         max_threshold = max(df[cost_col] / df[dalys_col].replace(0, np.nan))
-        thresholds = np.linspace(0, max_threshold * 1.1, 100)
+        thresholds = np.linspace(0, max_threshold * 0.1, 100)
         probabilities = []
         for threshold in thresholds:
             prob = (df[cost_col] <= threshold * df[dalys_col]).mean()

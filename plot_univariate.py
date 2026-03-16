@@ -34,6 +34,7 @@ df_soc = pd.read_csv(
 param_labels = {
     "n_coverage": "Nirsevimab coverage (88.26%)*",
     "both_coverages": "Nirsevimab coverage (75% and 95%) and Vaccine coverage (75% and 95%)",
+    "nirsevimab_unit_cost": "Nirsevimab unit cost (-25% and +25%)",
     "rsv_incidence": "RSV Incidence – GB-LRTI-2019 (upper CI and lower CI)",
     "inpatient_cost": "Inpatient cost (+25% and -25%)",
     "outpatient_cost": "Outpatient cost (+25% and -25%)",

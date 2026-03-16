@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 
 from util.constants import DAYS_IN_YEAR
-from util.core import run_scenario
+from util.core import calculate_dose_cost, run_scenario
 from util.data_enricher import enrich_agegroup_data, enrich_scalar_data
 from util.data_loader import load_age_groups, load_agegroup_data, load_scalar_data
 
@@ -12,6 +12,7 @@ def run_univariate(
     param_name: str,
     n_coverage: Optional[List[float]] = None,
     v_coverage: Optional[List[float]] = None,
+    n_unit_cost_factors: Optional[List[float]] = None,
     hosp_proportions: Optional[List[List[float]]] = None,
     outpatient_proportions: Optional[List[List[float]]] = None,
     inpatient_costs_factors: Optional[List[float]] = None,
@@ -36,7 +37,15 @@ def run_univariate(
     nirsevimab_result = run_scenario(
         cohort=scalar_data["cohort"],
         coverage=n_coverage[0] if n_coverage is not None else scalar_data["nirsevimab_coverage"],
-        intervention_dose_cost=scalar_data["nirsevimab_dose_cost"],
+        intervention_dose_cost=(
+            calculate_dose_cost(
+                unit_cost=scalar_data["nirsevimab_unit_cost"] * n_unit_cost_factors[0],
+                wastage_pct=scalar_data["nirsevimab_wastage_rate"],
+                administration_cost=scalar_data["nirsevimab_administration_cost"],
+            )
+            if n_unit_cost_factors is not None
+            else scalar_data["nirsevimab_dose_cost"]
+        ),
         severe_case_dw=scalar_data["severe_case_dw"],
         moderate_case_dw=scalar_data["moderate_case_dw"],
         severe_illness_duration_days=scalar_data["severe_illness_duration_days"],
@@ -170,7 +179,15 @@ def run_univariate(
     nirsevimab_result = run_scenario(
         cohort=scalar_data["cohort"],
         coverage=n_coverage[1] if n_coverage is not None else scalar_data["nirsevimab_coverage"],
-        intervention_dose_cost=scalar_data["nirsevimab_dose_cost"],
+        intervention_dose_cost=(
+            calculate_dose_cost(
+                unit_cost=scalar_data["nirsevimab_unit_cost"] * n_unit_cost_factors[1],
+                wastage_pct=scalar_data["nirsevimab_wastage_rate"],
+                administration_cost=scalar_data["nirsevimab_administration_cost"],
+            )
+            if n_unit_cost_factors is not None
+            else scalar_data["nirsevimab_dose_cost"]
+        ),
         severe_case_dw=scalar_data["severe_case_dw"],
         moderate_case_dw=scalar_data["moderate_case_dw"],
         severe_illness_duration_days=scalar_data["severe_illness_duration_days"],
@@ -304,7 +321,15 @@ def run_univariate(
     nirsevimab_result = run_scenario(
         cohort=scalar_data["cohort"],
         coverage=n_coverage[0] if n_coverage is not None else scalar_data["nirsevimab_coverage"],
-        intervention_dose_cost=scalar_data["nirsevimab_dose_cost"],
+        intervention_dose_cost=(
+            calculate_dose_cost(
+                unit_cost=scalar_data["nirsevimab_unit_cost"] * n_unit_cost_factors[0],
+                wastage_pct=scalar_data["nirsevimab_wastage_rate"],
+                administration_cost=scalar_data["nirsevimab_administration_cost"],
+            )
+            if n_unit_cost_factors is not None
+            else scalar_data["nirsevimab_dose_cost"]
+        ),
         severe_case_dw=scalar_data["severe_case_dw"],
         moderate_case_dw=scalar_data["moderate_case_dw"],
         severe_illness_duration_days=scalar_data["severe_illness_duration_days"],
@@ -410,7 +435,15 @@ def run_univariate(
     nirsevimab_result = run_scenario(
         cohort=scalar_data["cohort"],
         coverage=n_coverage[1] if n_coverage is not None else scalar_data["nirsevimab_coverage"],
-        intervention_dose_cost=scalar_data["nirsevimab_dose_cost"],
+        intervention_dose_cost=(
+            calculate_dose_cost(
+                unit_cost=scalar_data["nirsevimab_unit_cost"] * n_unit_cost_factors[1],
+                wastage_pct=scalar_data["nirsevimab_wastage_rate"],
+                administration_cost=scalar_data["nirsevimab_administration_cost"],
+            )
+            if n_unit_cost_factors is not None
+            else scalar_data["nirsevimab_dose_cost"]
+        ),
         severe_case_dw=scalar_data["severe_case_dw"],
         moderate_case_dw=scalar_data["moderate_case_dw"],
         severe_illness_duration_days=scalar_data["severe_illness_duration_days"],
@@ -526,6 +559,9 @@ def main():
     univariate_results.append(run_univariate("n_coverage", n_coverage=[0.5, 0.8826]))
     univariate_results.append(
         run_univariate("both_coverages", n_coverage=[0.75, 0.95], v_coverage=[0.75, 0.95])
+    )
+    univariate_results.append(
+        run_univariate("nirsevimab_unit_cost", n_unit_cost_factors=[0.75, 1.25])
     )
     univariate_results.append(
         run_univariate(

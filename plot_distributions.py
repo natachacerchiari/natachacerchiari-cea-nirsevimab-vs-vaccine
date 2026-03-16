@@ -232,6 +232,21 @@ _save_hist(
     "caregiver_daily_salary_lognormal.png",
 )
 
+# Interventions unit costs
+variation = 0.25
+
+nuc_mean = float(scalar_row["nirsevimab_unit_cost"])
+mu_nuc, sigma_nuc = fit_lognormal_briggs(nuc_mean, variation)
+nuc_samples = NP_RNG.lognormal(mu_nuc, sigma_nuc, N)
+_save_hist(
+    nuc_samples, "nirsevimab_unit_cost (Lognormal Briggs)", "nirsevimab_unit_cost_lognormal.png"
+)
+
+vuc_mean = float(scalar_row["vaccine_unit_cost"])
+mu_vuc, sigma_vuc = fit_lognormal_briggs(vuc_mean, variation)
+vuc_samples = NP_RNG.lognormal(mu_vuc, sigma_vuc, N)
+_save_hist(vuc_samples, "vaccine_unit_cost (Lognormal Briggs)", "vaccine_unit_cost_lognormal.png")
+
 
 def main():
     print("Generation complete. PNG files saved to:", OUTPUT_DIR)
