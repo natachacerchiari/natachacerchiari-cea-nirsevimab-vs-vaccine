@@ -151,20 +151,20 @@ for sg in agegroup_data_df.index:
         h_lo = float(agegroup_data_df.loc[sg, "nirsevimab_hosp_reduction_eff_ci95_lower"])
         h_hi = float(agegroup_data_df.loc[sg, "nirsevimab_hosp_reduction_eff_ci95_upper"])
         n_mean, n_sd = fit_normal(h_mean, h_lo, h_hi)
-        hosp_norm_samples = sample_truncated_normal(N, n_mean, n_sd, 0.0, 1.0, rng=NP_RNG)
+        n_hosp_norm_samples = sample_truncated_normal(N, n_mean, n_sd, 0.0, 1.0, rng=NP_RNG)
         a_h, b_h = fit_beta(h_mean, h_lo, h_hi)
-        hosp_beta_samples = NP_RNG.beta(a_h, b_h, N)
+        n_hosp_beta_samples = NP_RNG.beta(a_h, b_h, N)
         _save_comparative_hists(
             [
                 (
-                    hosp_norm_samples,
-                    f"hosp_reduction_eff {sg} (Truncated Normal)",
-                    f"hosp_reduction_eff_{sg}_normal.png".replace(" ", "_"),
+                    n_hosp_norm_samples,
+                    f"nirsevimab_hosp_reduction_eff {sg} (Truncated Normal)",
+                    f"nirsevimab_hosp_reduction_eff_{sg}_normal.png".replace(" ", "_"),
                 ),
                 (
-                    hosp_beta_samples,
-                    f"hosp_reduction_eff {sg} (Beta)",
-                    f"hosp_reduction_eff_{sg}_beta.png".replace(" ", "_"),
+                    n_hosp_beta_samples,
+                    f"nirsevimab_hosp_reduction_eff {sg} (Beta)",
+                    f"nirsevimab_hosp_reduction_eff_{sg}_beta.png".replace(" ", "_"),
                 ),
             ]
         )
@@ -175,11 +175,50 @@ for sg in agegroup_data_df.index:
         m_lo = float(agegroup_data_df.loc[sg, "nirsevimab_malrti_reduction_eff_ci95_lower"])
         m_hi = float(agegroup_data_df.loc[sg, "nirsevimab_malrti_reduction_eff_ci95_upper"])
         a_m, b_m = fit_beta(m_mean, m_lo, m_hi)
-        malrti_beta_samples = NP_RNG.beta(a_m, b_m, N)
+        n_malrti_beta_samples = NP_RNG.beta(a_m, b_m, N)
         _save_hist(
-            malrti_beta_samples,
-            f"malrti_reduction_eff {sg} (Beta)",
-            f"malrti_reduction_eff_{sg}_beta.png".replace(" ", "_"),
+            n_malrti_beta_samples,
+            f"nirsevimab_malrti_reduction_eff {sg} (Beta)",
+            f"nirsevimab_malrti_reduction_eff_{sg}_beta.png".replace(" ", "_"),
+        )
+
+# Vaccine effectiveness (all groups with mean > 0)
+for sg in agegroup_data_df.index:
+    # Hospitalization reduction effectiveness
+    h_mean = float(agegroup_data_df.loc[sg, "vaccine_hosp_reduction_eff"])
+    if h_mean > 0:
+        h_lo = float(agegroup_data_df.loc[sg, "vaccine_hosp_reduction_eff_ci95_lower"])
+        h_hi = float(agegroup_data_df.loc[sg, "vaccine_hosp_reduction_eff_ci95_upper"])
+        n_mean, n_sd = fit_normal(h_mean, h_lo, h_hi)
+        v_hosp_norm_samples = sample_truncated_normal(N, n_mean, n_sd, 0.0, 1.0, rng=NP_RNG)
+        a_h, b_h = fit_beta(h_mean, h_lo, h_hi)
+        v_hosp_beta_samples = NP_RNG.beta(a_h, b_h, N)
+        _save_comparative_hists(
+            [
+                (
+                    v_hosp_norm_samples,
+                    f"vaccine_hosp_reduction_eff {sg} (Truncated Normal)",
+                    f"vaccine_hosp_reduction_eff_{sg}_normal.png".replace(" ", "_"),
+                ),
+                (
+                    v_hosp_beta_samples,
+                    f"vaccine_hosp_reduction_eff {sg} (Beta)",
+                    f"vaccine_hosp_reduction_eff_{sg}_beta.png".replace(" ", "_"),
+                ),
+            ]
+        )
+
+    # MALRTI reduction effectiveness
+    m_mean = float(agegroup_data_df.loc[sg, "vaccine_malrti_reduction_eff"])
+    if m_mean > 0:
+        m_lo = float(agegroup_data_df.loc[sg, "vaccine_malrti_reduction_eff_ci95_lower"])
+        m_hi = float(agegroup_data_df.loc[sg, "vaccine_malrti_reduction_eff_ci95_upper"])
+        a_m, b_m = fit_beta(m_mean, m_lo, m_hi)
+        v_malrti_beta_samples = NP_RNG.beta(a_m, b_m, N)
+        _save_hist(
+            v_malrti_beta_samples,
+            f"vaccine_malrti_reduction_eff {sg} (Beta)",
+            f"vaccine_malrti_reduction_eff_{sg}_beta.png".replace(" ", "_"),
         )
 
 # Nirsevimab coverage (PERT)

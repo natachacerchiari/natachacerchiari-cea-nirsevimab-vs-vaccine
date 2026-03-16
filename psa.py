@@ -79,7 +79,19 @@ def main():
         "nirsevimab_malrti_reduction_eff_ci95_upper"
     ].to_list()
     vaccine_hosp_reduction_effs = agegroup_data["vaccine_hosp_reduction_eff"].to_list()
+    vaccine_hosp_reduction_eff_ci95_lowers = agegroup_data[
+        "vaccine_hosp_reduction_eff_ci95_lower"
+    ].to_list()
+    vaccine_hosp_reduction_eff_ci95_uppers = agegroup_data[
+        "vaccine_hosp_reduction_eff_ci95_upper"
+    ].to_list()
     vaccine_malrti_reduction_effs = agegroup_data["vaccine_malrti_reduction_eff"].to_list()
+    vaccine_malrti_reduction_eff_ci95_lowers = agegroup_data[
+        "vaccine_malrti_reduction_eff_ci95_lower"
+    ].to_list()
+    vaccine_malrti_reduction_eff_ci95_uppers = agegroup_data[
+        "vaccine_malrti_reduction_eff_ci95_upper"
+    ].to_list()
     affected_caregivers_proportions = agegroup_data["affected_caregivers_proportion"].to_list()
     caregiver_daily_salaries = agegroup_data["caregiver_daily_salary"].to_list()
 
@@ -150,6 +162,29 @@ def main():
                 nirsevimab_malrti_reduction_eff_ci95_uppers[i],
             )
             nirsevimab_malrti_reduction_params[i] = (alpha, beta)
+
+    # Fit beta parameters for vaccine effectiveness (hospitalization reduction)
+    vaccine_hosp_reduction_params = [None] * n_sub
+    for i in range(n_sub):
+        if vaccine_hosp_reduction_effs[i] != 0:
+            alpha, beta = fit_beta(
+                vaccine_hosp_reduction_effs[i],
+                vaccine_hosp_reduction_eff_ci95_lowers[i],
+                vaccine_hosp_reduction_eff_ci95_uppers[i],
+            )
+            vaccine_hosp_reduction_params[i] = (alpha, beta)
+
+    # Fit beta parameters for vaccine effectiveness (malrti reduction)
+    vaccine_malrti_reduction_params = [None] * n_sub
+    for i in range(n_sub):
+        if vaccine_malrti_reduction_effs[i] != 0:
+            alpha, beta = fit_beta(
+                vaccine_malrti_reduction_effs[i],
+                vaccine_malrti_reduction_eff_ci95_lowers[i],
+                vaccine_malrti_reduction_eff_ci95_uppers[i],
+            )
+            vaccine_malrti_reduction_params[i] = (alpha, beta)
+
 
     soc_results = []
     phs_results = []
@@ -234,6 +269,27 @@ def main():
             maxi=nirsevimab_max_expected_coverage,
             random_state=NP_RNG,
         )
+        # Vaccine effectiveness (hospitalization): beta where mean != 0, else fixed
+        rand_vaccine_hosp_reduction_effs = []
+        for i in range(n_sub):
+            params = vaccine_hosp_reduction_params[i]
+            if params is not None:
+                alpha, beta = params
+                sampled = NP_RNG.beta(alpha, beta)
+                rand_vaccine_hosp_reduction_effs.append(sampled)
+            else:
+                rand_vaccine_hosp_reduction_effs.append(vaccine_hosp_reduction_effs[i])
+
+        # Vaccine effectiveness (maltri): beta where mean != 0, else fixed
+        rand_vaccine_malrti_reduction_effs = []
+        for i in range(n_sub):
+            params = vaccine_malrti_reduction_params[i]
+            if params is not None:
+                alpha, beta = params
+                sampled = NP_RNG.beta(alpha, beta)
+                rand_vaccine_malrti_reduction_effs.append(sampled)
+            else:
+                rand_vaccine_malrti_reduction_effs.append(vaccine_malrti_reduction_effs[i])
 
         # Vaccine coverage
         rand_vaccine_coverage = pert.rvs(
@@ -292,8 +348,8 @@ def main():
             rand_inpatient_caregiver_salary_losses,
             outpatient_transport_costs,
             rand_outpatient_caregiver_salary_losses,
-            vaccine_hosp_reduction_effs,
-            vaccine_malrti_reduction_effs,
+            rand_vaccine_hosp_reduction_effs,
+            rand_vaccine_malrti_reduction_effs,
         )
 
         # Public perspective (zero salary losses)
@@ -320,8 +376,8 @@ def main():
             [0.0] * n_sub,
             [0.0] * n_sub,
             [0.0] * n_sub,
-            nirsevimab_hosp_reduction_effs,
-            nirsevimab_malrti_reduction_effs,
+            rand_nirsevimab_hosp_reduction_effs,
+            rand_nirsevimab_malrti_reduction_effs,
         )
         result_public_vaccine_dict = run_scenario(
             cohort,
@@ -345,8 +401,8 @@ def main():
             [0.0] * n_sub,
             [0.0] * n_sub,
             [0.0] * n_sub,
-            vaccine_hosp_reduction_effs,
-            vaccine_malrti_reduction_effs,
+            rand_vaccine_hosp_reduction_effs,
+            rand_vaccine_malrti_reduction_effs,
         )
 
         soc_results.append(
