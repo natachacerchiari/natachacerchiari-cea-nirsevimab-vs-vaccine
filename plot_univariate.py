@@ -7,11 +7,20 @@ import numpy as np
 import pandas as pd
 import seaborn as sb
 
-sb.set_theme(style="whitegrid")
-
-
 # Shared plot variables
 BAR_HEIGHT = 0.7
+LABEL_ROTATION = 70
+
+# Shared x-axis tick configuration
+TICK_POSITIONS = [-(10**i) for i in range(6, 0, -1)] + [0] + [10**i for i in range(1, 7)]
+TICK_LABELS = (
+    [rf"$ICER - 10^{{{i}}}$" for i in range(6, 0, -1)]
+    + [r"$ICER$"]
+    + [rf"$ICER + 10^{{{i}}}$" for i in range(1, 7)]
+)
+
+# Shared legend kwargs
+LEGEND_KWARGS = dict(bbox_to_anchor=(0.8, 0.25), fontsize=8, frameon=True, framealpha=0.8)
 
 # Read reference ICER values
 ref_icers = pd.read_csv("results/main/main.csv")
@@ -76,6 +85,7 @@ plt.rcParams.update(
 # Health system perspective tornado plot
 if not df_sorted_phs.empty:
     fig1, ax1 = plt.subplots(1, 1, figsize=(8, 4))
+    ax1.set_xscale("symlog", linthresh=10)
 
     y_pos = np.arange(len(df_sorted_phs))
 
@@ -83,7 +93,6 @@ if not df_sorted_phs.empty:
     ax1.barh(
         y_pos,
         df_sorted_phs["icer_phs_hi"] - ref_icer_phs,
-        left=ref_icer_phs,
         height=BAR_HEIGHT,
         color="darkred",
         alpha=1,
@@ -92,7 +101,6 @@ if not df_sorted_phs.empty:
     ax1.barh(
         y_pos,
         df_sorted_phs["icer_phs_lo"] - ref_icer_phs,
-        left=ref_icer_phs,
         height=BAR_HEIGHT,
         color="darkblue",
         alpha=1,
@@ -101,7 +109,7 @@ if not df_sorted_phs.empty:
 
     # Add reference line
     ax1.axvline(
-        x=ref_icer_phs,
+        x=0,
         color="dimgray",
         linestyle="--",
         linewidth=1,
@@ -113,8 +121,10 @@ if not df_sorted_phs.empty:
     ax1.set_yticklabels(df_sorted_phs["label"])
     ax1.set_xlabel("ICER (USD/DALY)")
     ax1.set_title("Health System Perspective - Univariate Sensitivity Analysis")
-    ax1.legend(loc="lower right", fontsize=8)
-    ax1.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f"{x:,.0f}"))
+    ax1.legend(**LEGEND_KWARGS)
+    ax1.set_xticks(TICK_POSITIONS)
+    ax1.set_xticklabels(TICK_LABELS)
+    ax1.tick_params(axis="x", labelrotation=LABEL_ROTATION)
 
     ax1.spines["top"].set_visible(False)
     ax1.spines["right"].set_visible(False)
@@ -129,6 +139,7 @@ if not df_sorted_phs.empty:
 # Societal perspective tornado plot
 if not df_sorted_soc.empty:
     fig2, ax2 = plt.subplots(1, 1, figsize=(8, 4))
+    ax2.set_xscale("symlog", linthresh=10)
 
     y_pos = np.arange(len(df_sorted_soc))
 
@@ -136,7 +147,6 @@ if not df_sorted_soc.empty:
     ax2.barh(
         y_pos,
         df_sorted_soc["icer_soc_hi"] - ref_icer_soc,
-        left=ref_icer_soc,
         height=BAR_HEIGHT,
         color="darkred",
         alpha=1,
@@ -145,7 +155,6 @@ if not df_sorted_soc.empty:
     ax2.barh(
         y_pos,
         df_sorted_soc["icer_soc_lo"] - ref_icer_soc,
-        left=ref_icer_soc,
         height=BAR_HEIGHT,
         color="darkblue",
         alpha=1,
@@ -154,7 +163,7 @@ if not df_sorted_soc.empty:
 
     # Add reference line
     ax2.axvline(
-        x=ref_icer_soc,
+        x=0,
         color="dimgray",
         linestyle="--",
         linewidth=1,
@@ -166,8 +175,10 @@ if not df_sorted_soc.empty:
     ax2.set_yticklabels(df_sorted_soc["label"])
     ax2.set_xlabel("ICER (USD/DALY)")
     ax2.set_title("Societal Perspective - Univariate Sensitivity Analysis")
-    ax2.legend(loc="lower right", fontsize=8)
-    ax2.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f"{x:,.0f}"))
+    ax2.legend(**LEGEND_KWARGS)
+    ax2.set_xticks(TICK_POSITIONS)
+    ax2.set_xticklabels(TICK_LABELS)
+    ax2.tick_params(axis="x", labelrotation=LABEL_ROTATION)
 
     ax2.spines["top"].set_visible(False)
     ax2.spines["right"].set_visible(False)
