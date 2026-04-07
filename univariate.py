@@ -558,7 +558,10 @@ def main():
 
     univariate_results.append(run_univariate("n_coverage", n_coverage=[0.5, 0.8826]))
     univariate_results.append(
-        run_univariate("both_coverages", n_coverage=[0.75, 0.95], v_coverage=[0.75, 0.95])
+        run_univariate("low_coverage", n_coverage=[0.50, 0.75], v_coverage=[0.50, 0.75])
+    )
+    univariate_results.append(
+        run_univariate("high_coverage", n_coverage=[0.50, 0.95], v_coverage=[0.50, 0.95])
     )
     univariate_results.append(
         run_univariate("nirsevimab_unit_cost", n_unit_cost_factors=[0.75, 1.25])
