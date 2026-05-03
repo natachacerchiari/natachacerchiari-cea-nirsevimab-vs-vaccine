@@ -23,6 +23,8 @@ The analysis is organized into three main components:
 
     main - The main cost-effectiveness analysis
 
+    univariate - Univariate sensitivity analysis
+
     psa - Probabilistic sensitivity analysis
 
     ceac - Cost-effectiveness acceptability curve generation
@@ -37,6 +39,20 @@ Run the main cost-effectiveness model:
    ```bash
    python3 main.py
    ```  
+
+### Univariate Sensitivity Analysis
+
+Run the univariate sensitivity analysis:
+
+    ```bash
+    python3 univariate.py
+    ```
+
+Generate tornado plots for univariate sensitivity analysis results:
+
+    ```bash
+    python3 univariate_tornado.py
+    ```
 
 ### PSA
 
@@ -56,6 +72,10 @@ Generates cost-effectiveness acceptability curves using incremental costs and DA
 
 ## Output Files
 
+### Univariate Results (saved in results/univariate/ directory)
+
+    univariate.csv - ICER values for each parameter varied in the univariate sensitivity analysis
+
 ### PSA results (saved in results/psa/ directory):
 
     psa_public.csv - Probabilistic sensitivity analysis results from the health system perspective
@@ -67,6 +87,12 @@ Generates cost-effectiveness acceptability curves using incremental costs and DA
     ceac_public.csv - ICERs and acceptability probabilities for the health system perspective
 
     ceac_societal.csv - ICERs and acceptability probabilities for the societal perspective
+
+### Univariate Visualizations (saved in img/univariate/ directory)
+
+    univariate_tornado_phs.png - Tornado diagram for the health system perspective
+
+    univariate_tornado_soc.png - Tornado diagram for the societal perspective
 
 ### PSA visualizations (saved in img/psa/ directory):
 
@@ -95,6 +121,24 @@ Key parameters evaluated:
     Epidemiological parameters
 
     Health economics parameters
+
+### Univariate Sensitivity Analysis:
+
+Systematically varies each key parameter individually to assess its impact on the ICER. Parameters evaluated include:
+
+    Nirsevimab coverage (asymmetric and symmetric scenarios)
+
+    Nirsevimab unit price (±25%)
+
+    RSV incidence rates (upper and lower confidence limits)
+
+    Inpatient and outpatient costs (±25%)
+
+    Caregiver daily wage (±25%, societal perspective only)
+
+    Nirsevimab effectiveness (95% confidence intervals)
+
+Results are visualized as tornado diagrams ranking parameters by their influence on the ICER.
 
 #### PSA:
 
