@@ -35,10 +35,12 @@ def main():
     vaccine_coverage_mode = scalar_data["vaccine_coverage_mode"]
     vaccine_min_expected_coverage = scalar_data["vaccine_min_expected_coverage"]
     vaccine_max_expected_coverage = scalar_data["vaccine_max_expected_coverage"]
-    rand_nirsevimab_unit_cost = scalar_data["nirsevimab_unit_cost"]
+    nirsevimab_unit_cost = scalar_data["nirsevimab_unit_cost"]
     nirsevimab_wastage_pct = scalar_data["nirsevimab_wastage_rate"]
     nirsevimab_administration_cost = scalar_data["nirsevimab_administration_cost"]
-    vaccine_dose_cost = scalar_data["vaccine_dose_cost"]
+    vaccine_unit_cost = scalar_data["vaccine_unit_cost"]
+    vaccine_wastage_pct = scalar_data["vaccine_wastage_rate"]
+    vaccine_administration_cost = scalar_data["vaccine_administration_cost"]
     severe_illness_duration_days = scalar_data["severe_illness_duration_days"]
     moderate_illness_duration_days = scalar_data["moderate_illness_duration_days"]
     discounted_yll = scalar_data["discounted_yll"]
@@ -96,7 +98,10 @@ def main():
     caregiver_daily_salaries = agegroup_data["caregiver_daily_salary"].to_list()
 
     # Fit lognormal (Briggs) parameters for nirsevimab unit cost (25% variation)
-    nirsevimab_unit_cost_mu, nirsevimab_unit_cost_sigma = fit_lognormal_briggs(rand_nirsevimab_unit_cost, 0.25)
+    nirsevimab_unit_cost_mu, nirsevimab_unit_cost_sigma = fit_lognormal_briggs(nirsevimab_unit_cost, 0.25)
+
+    # Fit lognormal (Briggs) parameters for vaccine unit cost (25% variation)
+    vaccine_unit_cost_mu, vaccine_unit_cost_sigma = fit_lognormal_briggs(vaccine_unit_cost, 0.25)
 
     # Fit lognormal (Briggs) parameters for patient costs (25% variation)
     inpatient_costs_params = [fit_lognormal_briggs(c, 0.25) for c in inpatient_costs]
@@ -192,6 +197,7 @@ def main():
     for _ in range(N):
         # Nirsevimab dose cost calculations
         rand_nirsevimab_unit_cost = NP_RNG.lognormal(nirsevimab_unit_cost_mu, nirsevimab_unit_cost_sigma)
+
         rand_nirsevimab_dose_cost = calculate_dose_cost(
             unit_cost=rand_nirsevimab_unit_cost,
             wastage_pct=nirsevimab_wastage_pct,
@@ -269,6 +275,16 @@ def main():
             maxi=nirsevimab_max_expected_coverage,
             random_state=NP_RNG,
         )
+
+        # Vaccine dose cost calculations
+        rand_vaccine_unit_cost = NP_RNG.lognormal(vaccine_unit_cost_mu, vaccine_unit_cost_sigma)
+
+        rand_vaccine_dose_cost = calculate_dose_cost(
+            unit_cost=rand_vaccine_unit_cost,
+            wastage_pct=vaccine_wastage_pct,
+            administration_cost=vaccine_administration_cost
+        )
+
         # Vaccine effectiveness (hospitalization): beta where mean != 0, else fixed
         rand_vaccine_hosp_reduction_effs = []
         for i in range(n_sub):
@@ -329,7 +345,7 @@ def main():
         result_societal_vaccine_dict = run_scenario(
             cohort,
             rand_vaccine_coverage,
-            vaccine_dose_cost,
+            rand_vaccine_dose_cost,
             severe_case_dw,
             moderate_case_dw,
             severe_illness_duration_days,
@@ -382,7 +398,7 @@ def main():
         result_public_vaccine_dict = run_scenario(
             cohort,
             rand_vaccine_coverage,
-            vaccine_dose_cost,
+            rand_vaccine_dose_cost,
             severe_case_dw,
             moderate_case_dw,
             severe_illness_duration_days,
